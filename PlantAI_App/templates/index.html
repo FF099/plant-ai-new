@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{% block title %}
+    <title>🌿 Plant AI — หน้าแรก</title>
+{% endblock %}
+
+{% block content %}
+{% load static %}
+<link rel="stylesheet" href="{% static 'plants/css/style_index.css' %}">
+
+<div class="page-hero text-center my-4">
+    <h2>Plant AI</h2>
+    <p class="text-muted">ค้นหาพืชและไม้ประดับที่เหมาะกับสภาพแวดล้อมของคุณ</p>
+</div>
+
+<!-- Search Card -->
+<div class="card p-4 shadow-sm mb-4">
+    <form method="get" class="row g-3">
+        <div class="col-12">
+            <input type="text" name="search" class="form-control" 
+                   placeholder="ค้นหาชื่อพืช..." value="{{ search|default_if_none:'' }}">
+        </div>
+
+        <div class="col-md-3 col-6">
+            <label class="form-label fw-bold">หมวดหมู่ :</label>
+            <select name="category" class="form-select">
+                <option value="">-- ทุกหมวด --</option>
+                {% for cat in categories %}
+                <option value="{{ cat.category_id }}" {% if selected_category == cat.category_id %}selected{% endif %}>
+                    {{ cat.category_name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="col-md-3 col-6">
+            <label class="form-label fw-bold">แสง :</label>
+            <select name="light" class="form-select">
+                <option value="">-- ทั้งหมด --</option>
+                <option value="low" {% if selected_light == "low" %}selected{% endif %}>แสงน้อย</option>
+                <option value="medium" {% if selected_light == "medium" %}selected{% endif %}>แสงปานกลาง</option>
+                <option value="high" {% if selected_light == "high" %}selected{% endif %}>แสงมาก</option>
+            </select>
+        </div>
+
+        <div class="col-md-3 col-6">
+            <label class="form-label fw-bold">น้ำ :</label>
+            <select name="water" class="form-select">
+                <option value="">-- ทั้งหมด --</option>
+                <option value="low" {% if selected_water == "low" %}selected{% endif %}>น้ำน้อย</option>
+                <option value="medium" {% if selected_water == "medium" %}selected{% endif %}>น้ำปานกลาง</option>
+                <option value="high" {% if selected_water == "high" %}selected{% endif %}>น้ำมาก</option>
+            </select>
+        </div>
+
+        <div class="col-md-3 col-6">
+            <label class="form-label fw-bold">ความชื้น :</label>
+            <select name="humidity" class="form-select">
+                <option value="">-- ทั้งหมด --</option>
+                <option value="low" {% if selected_humidity == "low" %}selected{% endif %}>ความชื้นต่ำ</option>
+                <option value="medium" {% if selected_humidity == "medium" %}selected{% endif %}>ความชื้นปานกลาง</option>
+                <option value="high" {% if selected_humidity == "high" %}selected{% endif %}>ความชื้นสูง</option>
+            </select>
+        </div>
+
+        <div class="col-12 d-flex gap-2">
+            <button type="submit" class="btn btn-success">ค้นหา</button>
+            <a href="/" class="btn btn-outline-secondary">รีเซ็ต</a>
+        </div>
+    </form>
+</div>
+
+<!-- Plant Results -->
+<div class="h5 mb-3">ผลลัพธ์พืชที่ค้นพบ (พบ {{ plants.paginator.count }} รายการ)</div>
+<div class="row g-3 mb-4">
+    {% for plant in plants %}
+    <div class="col-md-4 col-sm-6">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title text-success">{{ plant.plant_name }}</h5>
+                <span class="badge bg-secondary mb-2">{{ plant.category.category_name }}</span>
+                <p class="card-text text-muted">{{ plant.description|default:"ไม่มีรายละเอียด"|truncatewords:15 }}</p>
+                <div class="small text-dark mt-2">
+                    <div>☀️ แสง: {{ plant.light }}</div>
+                    <div>💧 น้ำ: {{ plant.water }}</div>
+                    <div>💦 ความชื้น: {{ plant.humidity }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12 text-center py-5 text-muted">
+        <h4>🪴 ไม่พบข้อมูลพืชที่ตรงกับเงื่อนไข</h4>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Pagination -->
+{% if plants.has_other_pages %}
+<nav aria-label="Page navigation" class="my-4">
+    <ul class="pagination justify-content-center">
+        <li class="page-item {% if not plants.has_previous %}disabled{% endif %}">
+            <a class="page-link" href="{% if plants.has_previous %}?page={{ plants.previous_page_number }}&search={{ search }}&category={{ selected_category }}&light={{ selected_light }}&water={{ selected_water }}&humidity={{ selected_humidity }}{% else %}#{% endif %}">ก่อนหน้า</a>
+        </li>
+        {% for num in plants.paginator.page_range %}
+            {% if plants.number == num %}
+                <li class="page-item active"><a class="page-link" href="#">{{ num }}</a></li>
+            {% elif num > plants.number|add:'-3' and num < plants.number|add:'3' %}
+                <li class="page-item"><a class="page-link" href="?page={{ num }}&search={{ search }}&category={{ selected_category }}&light={{ selected_light }}&water={{ selected_water }}&humidity={{ selected_humidity }}">{{ num }}</a></li>
+            {% endif %}
+        {% endfor %}
+        <li class="page-item {% if not plants.has_next %}disabled{% endif %}">
+            <a class="page-link" href="{% if plants.has_next %}?page={{ plants.next_page_number }}&search={{ search }}&category={{ selected_category }}&light={{ selected_light }}&water={{ selected_water }}&humidity={{ selected_humidity }}{% else %}#{% endif %}">ถัดไป</a>
+        </li>
+    </ul>
+</nav>
+{% endif %}
+
+<!-- FAQ -->
+<div class="card p-4 shadow-sm my-4">
+    <h4 class="card-title text-primary mb-3">❓ คำถามที่พบบ่อย (FAQ)</h4>
+    {% for item in popular_faqs %}
+    <div class="border-bottom pb-2 mb-2">
+        <strong class="text-dark">{{ item.faq.title }}</strong>
+        <p class="mb-1 text-muted">{{ item.faq.answer_text }}</p>
+        <small class="text-info">จำนวนการค้นหาที่เกี่ยวข้อง: {{ item.search_count }} ครั้ง</small>
+    </div>
+    {% empty %}
+    <p class="text-muted">ยังไม่มีคำถามที่พบบ่อยในระบบ</p>
+    {% endfor %}
+</div>
+{% endblock %}

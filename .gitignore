@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Django
+
+.env
+media/
+
+
+# IDEs (VS Code / PyCharm)
+.vscode/
+.idea/
+
+# Windows
+Thumbs.db
+desktop.ini

@@ -1,0 +1,284 @@
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Noto+Sans+Thai:wght@300;400;500&display=swap');
+
+    :root {
+        --green-deep:   #1a3c2e;
+        --green-mid:    #2d6a4f;
+        --green-light:  #52b788;
+        --green-pale:   #d8f3dc;
+        --cream:        #f8f5f0;
+        --brown:        #7a5c3a;
+        --text-dark:    #1a2e20;
+        --text-muted:   #6b7e6f;
+        --shadow-card:  0 4px 24px rgba(26,60,46,0.10);
+        --shadow-hover: 0 8px 32px rgba(26,60,46,0.18);
+        --radius:       16px;
+        --radius-sm:    10px;
+    }
+
+    body {
+        background-color: var(--cream);
+        font-family: 'Noto Sans Thai', sans-serif;
+        color: var(--text-dark);
+    }
+
+    /* ─── Hero Header ─── */
+    .page-hero {
+        background: linear-gradient(135deg, var(--green-deep) 0%, var(--green-mid) 60%, var(--green-light) 100%);
+        border-radius: 0 0 40px 40px;
+        padding: 52px 24px 40px;
+        margin-bottom: 36px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 8px 32px rgba(26,60,46,0.18);
+    }
+    .page-hero::before {
+        content: "";
+        position: absolute;
+        font-size: 180px;
+        right: -20px;
+        top: -30px;
+        opacity: 0.08;
+        line-height: 1;
+        pointer-events: none;
+    }
+    .page-hero h2 {
+        font-family: 'Playfair Display', serif;
+        font-size: 2rem;
+        color: #fff;
+        margin-bottom: 4px;
+        letter-spacing: 0.02em;
+    }
+    .page-hero p {
+        color: rgba(255,255,255,0.75);
+        font-size: 0.95rem;
+        margin: 0;
+    }
+
+    /* ─── Search Card ─── */
+    .search-card {
+        background: #fff;
+        border: none;
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-card);
+        margin-bottom: 32px;
+        padding: 24px 28px;
+    }
+    .search-card .form-control,
+    .search-card .form-select {
+        border-radius: var(--radius-sm);
+        border: 1.5px solid #d4e8d9;
+        background: var(--cream);
+        color: var(--text-dark);
+        font-family: 'Noto Sans Thai', sans-serif;
+        transition: border-color 0.2s, box-shadow 0.2s;
+        padding: 10px 14px;
+    }
+    .search-card .form-control:focus,
+    .search-card .form-select:focus {
+        border-color: var(--green-light);
+        box-shadow: 0 0 0 3px rgba(82,183,136,0.15);
+        background: #fff;
+    }
+    .search-card label-section {
+        font-size: 0.78rem;
+        font-weight: 500;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin-bottom: 4px;
+        display: block;
+    }
+    .btn-search {
+        background: linear-gradient(135deg, var(--green-mid), var(--green-light));
+        border: none;
+        color: #fff;
+        border-radius: var(--radius-sm);
+        padding: 10px 28px;
+        font-family: 'Noto Sans Thai', sans-serif;
+        font-weight: 500;
+        letter-spacing: 0.02em;
+        transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .btn-search:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 18px rgba(45,106,79,0.28);
+        color: #fff;
+    }
+    .btn-reset {
+        background: transparent;
+        border: 1.5px solid #c9ddd0;
+        color: var(--text-muted);
+        border-radius: var(--radius-sm);
+        padding: 10px 22px;
+        font-family: 'Noto Sans Thai', sans-serif;
+        transition: background 0.15s, color 0.15s;
+    }
+    .btn-reset:hover {
+        background: var(--green-pale);
+        color: var(--green-deep);
+        border-color: var(--green-light);
+    }
+
+    /* ─── Filter Pills row ─── */
+    .filter-row-label {
+        font-size: 0.78rem;
+        color: var(--text-muted);
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        margin-bottom: 6px;
+    }
+
+    /* ─── Section Divider ─── */
+    .section-label {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.1rem;
+        color: var(--green-deep);
+        border-left: 4px solid var(--green-light);
+        padding-left: 12px;
+        margin-bottom: 18px;
+        margin-top: 4px;
+    }
+
+    /* ─── Plant Cards ─── */
+    .plant-card {
+        background: #fff;
+        border: none;
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-card);
+        transition: transform 0.22s, box-shadow 0.22s;
+        height: 100%;
+        position: relative;
+        overflow: hidden;
+    }
+    .plant-card::before {
+        content: "";
+        display: block;
+        height: 5px;
+        background: linear-gradient(90deg, var(--green-mid), var(--green-light));
+        border-radius: var(--radius) var(--radius) 0 0;
+    }
+    .plant-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-hover);
+    }
+    .plant-card .card-body {
+        padding: 20px 22px 18px;
+    }
+    .plant-card .card-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.1rem;
+        color: var(--green-deep);
+        margin-bottom: 4px;
+    }
+    .plant-card .badge-cat {
+        display: inline-block;
+        background: var(--green-pale);
+        color: var(--green-mid);
+        font-size: 0.72rem;
+        font-weight: 600;
+        border-radius: 20px;
+        padding: 2px 10px;
+        margin-bottom: 10px;
+        letter-spacing: 0.04em;
+    }
+    .plant-card .card-text {
+        font-size: 0.88rem;
+        color: var(--text-muted);
+        line-height: 1.6;
+        margin-bottom: 12px;
+    }
+    .plant-meta {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        font-size: 0.82rem;
+        background: var(--cream);
+        border-radius: var(--radius-sm);
+        padding: 10px 12px;
+    }
+    .plant-meta span {
+        color: var(--text-dark);
+    }
+
+    /* ─── Empty State ─── */
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: var(--text-muted);
+    }
+    .empty-state .empty-icon {
+        font-size: 3.5rem;
+        display: block;
+        margin-bottom: 12px;
+        opacity: 0.5;
+    }
+
+    /* ─── Pagination ─── */
+    .pagination .page-link {
+        border-radius: var(--radius-sm) !important;
+        margin: 0 3px;
+        border: 1.5px solid #d4e8d9;
+        color: var(--green-mid);
+        font-family: 'Noto Sans Thai', sans-serif;
+        font-size: 0.9rem;
+        padding: 7px 14px;
+        transition: all 0.15s;
+    }
+    .pagination .page-link:hover {
+        background: var(--green-pale);
+        border-color: var(--green-light);
+        color: var(--green-deep);
+    }
+    .pagination .page-item.active .page-link {
+        background: linear-gradient(135deg, var(--green-mid), var(--green-light));
+        border-color: transparent;
+        color: #fff;
+        box-shadow: 0 3px 10px rgba(45,106,79,0.25);
+    }
+    .pagination .page-item.disabled .page-link {
+        background: #f0f4f1;
+        border-color: #e0ece4;
+        color: #b5c9bc;
+    }
+
+    /* ─── FAQ Card ─── */
+    .faq-card {
+        background: #fff;
+        border: none;
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-card);
+        padding: 28px 30px;
+        margin-top: 36px;
+    }
+    .faq-card .faq-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.2rem;
+        color: var(--green-deep);
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid var(--green-pale);
+    }
+    .faq-item {
+        padding: 14px 16px;
+        border-radius: var(--radius-sm);
+        background: var(--cream);
+        margin-bottom: 10px;
+        border-left: 3px solid var(--green-light);
+        transition: background 0.15s;
+    }
+    .faq-item:hover {
+        background: var(--green-pale);
+    }
+    .faq-item strong {
+        display: block;
+        font-size: 0.92rem;
+        color: var(--green-deep);
+        margin-bottom: 4px;
+    }
+    .faq-item p {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        margin: 0;
+        line-height: 1.5;
+    }

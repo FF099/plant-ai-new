@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block title %}
+<title>🌿 Plant AI — Chat</title>
+{% endblock %}
+
+{% block content %}
+{% load static %}
+<link rel="stylesheet" href="{% static 'plants/css/style_chat.css' %}">
+
+<!-- Hero Header -->
+<div class="chat-hero">
+    <h5>Plant AI Chat</h5>
+    <small><span class="status-dot"></span>ออนไลน์ — ถามเรื่องต้นไม้ได้เลย</small>
+</div>
+
+<!-- Chat Wrapper -->
+<div class="chat-wrapper">
+    <div id="chat-box">
+        <div class="message bot-message">
+            สวัสดี! ผมคือผู้ช่วยอัจฉริยะด้านต้นไม้<br>
+            บอกเงื่อนไขที่ต้องการได้เลย เช่น แสงน้อย น้ำน้อย หรือชื่อต้นไม้ที่สนใจ
+        </div>
+    </div>
+
+    <div class="chat-footer">
+        <form id="chat-form">
+            <div class="input-wrap">
+                <input type="text" id="user-input" placeholder="พิมพ์ข้อความที่นี่..." autocomplete="off" required>
+                <button class="btn-send" type="submit">ส่ง</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="{% static 'plants/js/chat.js' %}"></script>
+{% endblock %}
