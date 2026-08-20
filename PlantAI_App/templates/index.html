@@ -14,15 +14,15 @@
 </div>
 
 <!-- Search Card -->
-<div class="card p-4 shadow-sm mb-4">
+<div class="search-card">
     <form method="get" class="row g-3">
         <div class="col-12">
-            <input type="text" name="search" class="form-control" 
+            <input type="text" name="search" class="form-control"
                    placeholder="ค้นหาชื่อพืช..." value="{{ search|default_if_none:'' }}">
         </div>
 
         <div class="col-md-3 col-6">
-            <label class="form-label fw-bold">หมวดหมู่ :</label>
+            <label class="filter-row-label">หมวดหมู่</label>
             <select name="category" class="form-select">
                 <option value="">-- ทุกหมวด --</option>
                 {% for cat in categories %}
@@ -34,7 +34,7 @@
         </div>
 
         <div class="col-md-3 col-6">
-            <label class="form-label fw-bold">แสง :</label>
+            <label class="filter-row-label">แสง</label>
             <select name="light" class="form-select">
                 <option value="">-- ทั้งหมด --</option>
                 <option value="low" {% if selected_light == "low" %}selected{% endif %}>แสงน้อย</option>
@@ -44,7 +44,7 @@
         </div>
 
         <div class="col-md-3 col-6">
-            <label class="form-label fw-bold">น้ำ :</label>
+            <label class="filter-row-label">น้ำ</label>
             <select name="water" class="form-select">
                 <option value="">-- ทั้งหมด --</option>
                 <option value="low" {% if selected_water == "low" %}selected{% endif %}>น้ำน้อย</option>
@@ -54,7 +54,7 @@
         </div>
 
         <div class="col-md-3 col-6">
-            <label class="form-label fw-bold">ความชื้น :</label>
+            <label class="filter-row-label">ความชื้น</label>
             <select name="humidity" class="form-select">
                 <option value="">-- ทั้งหมด --</option>
                 <option value="low" {% if selected_humidity == "low" %}selected{% endif %}>ความชื้นต่ำ</option>
@@ -64,33 +64,36 @@
         </div>
 
         <div class="col-12 d-flex gap-2">
-            <button type="submit" class="btn btn-success">ค้นหา</button>
-            <a href="/" class="btn btn-outline-secondary">รีเซ็ต</a>
+            <button type="submit" class="btn btn-search">ค้นหา</button>
+            <a href="/" class="btn btn-reset">รีเซ็ต</a>
         </div>
     </form>
 </div>
 
 <!-- Plant Results -->
-<div class="h5 mb-3">ผลลัพธ์พืชที่ค้นพบ (พบ {{ plants.paginator.count }} รายการ)</div>
+<div class="section-label">ผลลัพธ์พืชที่ค้นพบ (พบ {{ plants.paginator.count }} รายการ)</div>
 <div class="row g-3 mb-4">
     {% for plant in plants %}
     <div class="col-md-4 col-sm-6">
-        <div class="card h-100 shadow-sm">
+        <div class="plant-card">
             <div class="card-body">
-                <h5 class="card-title text-success">{{ plant.plant_name }}</h5>
-                <span class="badge bg-secondary mb-2">{{ plant.category.category_name }}</span>
-                <p class="card-text text-muted">{{ plant.description|default:"ไม่มีรายละเอียด"|truncatewords:15 }}</p>
-                <div class="small text-dark mt-2">
-                    <div>☀️ แสง: {{ plant.get_light_display }}</div>
-                    <div>💧 น้ำ: {{ plant.get_water_display }}</div>
-                    <div>💦 ความชื้น: {{ plant.get_humidity_display }}</div>
+                <h5 class="card-title">{{ plant.plant_name }}</h5>
+                <span class="badge-cat">{{ plant.category.category_name }}</span>
+                <p class="card-text">{{ plant.description|default:"ไม่มีรายละเอียด"|truncatewords:15 }}</p>
+                <div class="plant-meta">
+                    <span>☀️ แสง: {{ plant.get_light_display }}</span>
+                    <span>💧 น้ำ: {{ plant.get_water_display }}</span>
+                    <span>💦 ความชื้น: {{ plant.get_humidity_display }}</span>
                 </div>
             </div>
         </div>
     </div>
     {% empty %}
-    <div class="col-12 text-center py-5 text-muted">
-        <h4>🪴 ไม่พบข้อมูลพืชที่ตรงกับเงื่อนไข</h4>
+    <div class="col-12">
+        <div class="empty-state">
+            <span class="empty-icon">🪴</span>
+            <h4>ไม่พบข้อมูลพืชที่ตรงกับเงื่อนไข</h4>
+        </div>
     </div>
     {% endfor %}
 </div>
@@ -141,16 +144,16 @@
 {% endif %}
 
 <!-- FAQ -->
-<div class="card p-4 shadow-sm my-4">
-    <h4 class="card-title text-primary mb-3">❓ คำถามที่พบบ่อย (FAQ)</h4>
+<div class="faq-card">
+    <h4 class="faq-title">❓ คำถามที่พบบ่อย (FAQ)</h4>
     {% for item in popular_faqs %}
-    <div class="border-bottom pb-2 mb-2">
-        <strong class="text-dark">{{ item.faq.title }}</strong>
-        <p class="mb-1 text-muted">{{ item.faq.answer_text }}</p>
-        <small class="text-info">จำนวนการค้นหาที่เกี่ยวข้อง: {{ item.search_count }} ครั้ง</small>
+    <div class="faq-item">
+        <strong>{{ item.faq.title }}</strong>
+        <p>{{ item.faq.answer_text }}</p>
+        <small class="text-muted">จำนวนการค้นหาที่เกี่ยวข้อง: {{ item.search_count }} ครั้ง</small>
     </div>
     {% empty %}
-    <p class="text-muted">ยังไม่มีคำถามที่พบบ่อยในระบบ</p>
+    <p class="text-muted mb-0">ยังไม่มีคำถามที่พบบ่อยในระบบ</p>
     {% endfor %}
 </div>
 {% endblock %}

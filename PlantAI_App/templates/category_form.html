@@ -1,14 +1,22 @@
 <!-- category_form.html -->
 {% extends 'base.html' %}
 {% block content %}
-<div class="container py-4" style="max-width: 600px;">
+{% load static %}
+<link rel="stylesheet" href="{% static 'plants/css/style_admin.css' %}">
+
+<div class="admin-hero">
     <h2>{{ title }}</h2>
-    <hr>
+    <p>กรอกรายละเอียดหมวดหมู่พืชด้านล่าง</p>
+</div>
+
+<div class="form-card">
     <form method="post">
         {% csrf_token %}
         {{ form.as_p }}
-        <button type="submit" class="btn btn-success">บันทึก</button>
-        <a href="{% url 'management' %}?tab=categories" class="btn btn-secondary">ยกเลิก</a>
+        <div class="form-actions">
+            <button type="submit" class="btn btn-plant-primary">บันทึก</button>
+            <a href="{% url 'management' %}?tab=categories" class="btn btn-plant-secondary">ยกเลิก</a>
+        </div>
     </form>
 </div>
 {% endblock %}

@@ -1,33 +1,38 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="container py-4">
+{% load static %}
+<link rel="stylesheet" href="{% static 'plants/css/style_admin.css' %}">
+
+<div class="admin-hero">
     <h2>จัดการระบบข้อมูลพืช</h2>
-    <hr>
+    <p>เพิ่ม แก้ไข และดูแลข้อมูลพืช หมวดหมู่ FAQ และผู้ดูแลระบบ</p>
+</div>
 
-    <ul class="nav nav-tabs mb-4">
-        <li class="nav-item">
-            <a class="nav-link {% if tab == 'plants' %}active{% endif %}" href="?tab=plants">จัดการพืช</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link {% if tab == 'categories' %}active{% endif %}" href="?tab=categories">หมวดหมู่พืช</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link {% if tab == 'faqs' %}active{% endif %}" href="?tab=faqs">จัดการ FAQ</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link {% if tab == 'admins' %}active{% endif %}" href="?tab=admins">จัดการผู้ดูแลระบบ</a>
-        </li>
-    </ul>
+<ul class="nav nav-tabs-plant">
+    <li class="nav-item">
+        <a class="nav-link {% if tab == 'plants' %}active{% endif %}" href="?tab=plants">จัดการพืช</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {% if tab == 'categories' %}active{% endif %}" href="?tab=categories">หมวดหมู่พืช</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {% if tab == 'faqs' %}active{% endif %}" href="?tab=faqs">จัดการ FAQ</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {% if tab == 'admins' %}active{% endif %}" href="?tab=admins">จัดการผู้ดูแลระบบ</a>
+    </li>
+</ul>
 
-    <div class="tab-content">
-        <!-- 1. จัดการพืช -->
-        {% if tab == 'plants' %}
-        <div class="d-flex justify-content-between mb-3">
-            <h4>รายการข้อมูลพืช</h4>
-            <a href="{% url 'plant_add' %}" class="btn btn-success">+ เพิ่มพืช</a>
-        </div>
-        <table class="table table-bordered table-striped align-middle">
-            <thead class="table-light">
+<div class="tab-content">
+    <!-- 1. จัดการพืช -->
+    {% if tab == 'plants' %}
+    <div class="section-header">
+        <h4>รายการข้อมูลพืช</h4>
+        <a href="{% url 'plant_add' %}" class="btn btn-plant-primary">+ เพิ่มพืช</a>
+    </div>
+    <div class="table-plant-wrap">
+        <table class="table table-plant align-middle">
+            <thead>
                 <tr>
                     <th>รหัสพืช</th>
                     <th>ชื่อพืช</th>
@@ -46,24 +51,26 @@
                     <td>{{ p.get_light_display }} / {{ p.get_water_display }} / {{ p.get_humidity_display }}</td>
                     <td>{{ p.admin.username }}</td>
                     <td>
-                        <a href="{% url 'plant_edit' p.plant_id %}" class="btn btn-warning btn-sm">แก้ไข</a>
-                        <a href="{% url 'plant_delete' p.plant_id %}" class="btn btn-danger btn-sm" onclick="return confirm('ยืนยันการลบ?')">ลบ</a>
+                        <a href="{% url 'plant_edit' p.plant_id %}" class="btn btn-plant-warning">แก้ไข</a>
+                        <a href="{% url 'plant_delete' p.plant_id %}" class="btn btn-plant-danger" onclick="return confirm('ยืนยันการลบ?')">ลบ</a>
                     </td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="6" class="text-center">ไม่พบข้อมูลพืช</td></tr>
+                <tr><td colspan="6" class="text-center text-muted py-4">ไม่พบข้อมูลพืช</td></tr>
                 {% endfor %}
             </tbody>
         </table>
+    </div>
 
-        <!-- 2. จัดการหมวดหมู่ -->
-        {% elif tab == 'categories' %}
-        <div class="d-flex justify-content-between mb-3">
-            <h4>รายการหมวดหมู่พืช</h4>
-            <a href="{% url 'category_add' %}" class="btn btn-success">+ เพิ่มหมวดหมู่</a>
-        </div>
-        <table class="table table-bordered table-striped align-middle">
-            <thead class="table-light">
+    <!-- 2. จัดการหมวดหมู่ -->
+    {% elif tab == 'categories' %}
+    <div class="section-header">
+        <h4>รายการหมวดหมู่พืช</h4>
+        <a href="{% url 'category_add' %}" class="btn btn-plant-primary">+ เพิ่มหมวดหมู่</a>
+    </div>
+    <div class="table-plant-wrap">
+        <table class="table table-plant align-middle">
+            <thead>
                 <tr>
                     <th>รหัสหมวดหมู่</th>
                     <th>ชื่อหมวดหมู่</th>
@@ -80,23 +87,25 @@
                     <td>{{ c.detail|default:"-" }}</td>
                     <td>{{ c.admin.username }}</td>
                     <td>
-                        <a href="{% url 'category_edit' c.category_id %}" class="btn btn-warning btn-sm">แก้ไข</a>
-                        <a href="{% url 'category_delete' c.category_id %}" class="btn btn-danger btn-sm" onclick="return confirm('ยืนยันการลบ?')">ลบ</a>
+                        <a href="{% url 'category_edit' c.category_id %}" class="btn btn-plant-warning">แก้ไข</a>
+                        <a href="{% url 'category_delete' c.category_id %}" class="btn btn-plant-danger" onclick="return confirm('ยืนยันการลบ?')">ลบ</a>
                     </td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="5" class="text-center">ไม่พบข้อมูลหมวดหมู่</td></tr>
+                <tr><td colspan="5" class="text-center text-muted py-4">ไม่พบข้อมูลหมวดหมู่</td></tr>
                 {% endfor %}
             </tbody>
         </table>
+    </div>
 
-        <!-- 3. จัดการ FAQ -->
-        {% elif tab == 'faqs' %}
-        <div class="mb-3">
-            <h4>รายการคำถามที่พบบ่อย (FAQ)</h4>
-        </div>
-        <table class="table table-bordered table-striped align-middle">
-            <thead class="table-light">
+    <!-- 3. จัดการ FAQ -->
+    {% elif tab == 'faqs' %}
+    <div class="section-header">
+        <h4>รายการคำถามที่พบบ่อย (FAQ)</h4>
+    </div>
+    <div class="table-plant-wrap">
+        <table class="table table-plant align-middle">
+            <thead>
                 <tr>
                     <th>รหัส FAQ</th>
                     <th>หัวข้อ FAQ</th>
@@ -113,23 +122,25 @@
                     <td>{{ f.answer_text }}</td>
                     <td>{{ f.created_at|date:"d/m/Y H:i" }}</td>
                     <td>
-                        <a href="{% url 'faq_delete' f.faq_id %}" class="btn btn-danger btn-sm" onclick="return confirm('ยืนยันการลบ?')">ลบ</a>
+                        <a href="{% url 'faq_delete' f.faq_id %}" class="btn btn-plant-danger" onclick="return confirm('ยืนยันการลบ?')">ลบ</a>
                     </td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="5" class="text-center">ไม่พบข้อมูล FAQ</td></tr>
+                <tr><td colspan="5" class="text-center text-muted py-4">ไม่พบข้อมูล FAQ</td></tr>
                 {% endfor %}
             </tbody>
         </table>
+    </div>
 
-        <!-- 4. จัดการ Admin -->
-        {% elif tab == 'admins' %}
-        <div class="d-flex justify-content-between mb-3">
-            <h4>รายการผู้ดูแลระบบ</h4>
-            <a href="{% url 'admin_add' %}" class="btn btn-success">+ เพิ่มผู้ดูแลระบบ</a>
-        </div>
-        <table class="table table-bordered table-striped align-middle">
-            <thead class="table-light">
+    <!-- 4. จัดการ Admin -->
+    {% elif tab == 'admins' %}
+    <div class="section-header">
+        <h4>รายการผู้ดูแลระบบ</h4>
+        <a href="{% url 'admin_add' %}" class="btn btn-plant-primary">+ เพิ่มผู้ดูแลระบบ</a>
+    </div>
+    <div class="table-plant-wrap">
+        <table class="table table-plant align-middle">
+            <thead>
                 <tr>
                     <th>รหัส Admin</th>
                     <th>Username</th>
@@ -144,15 +155,15 @@
                     <td>{{ a.username }}</td>
                     <td>{{ a.email }}</td>
                     <td>
-                        <a href="{% url 'admin_edit' a.admin_id %}" class="btn btn-warning btn-sm">แก้ไข</a>
+                        <a href="{% url 'admin_edit' a.admin_id %}" class="btn btn-plant-warning">แก้ไข</a>
                     </td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="4" class="text-center">ไม่พบข้อมูลผู้ดูแลระบบ</td></tr>
+                <tr><td colspan="4" class="text-center text-muted py-4">ไม่พบข้อมูลผู้ดูแลระบบ</td></tr>
                 {% endfor %}
             </tbody>
         </table>
-        {% endif %}
     </div>
+    {% endif %}
 </div>
 {% endblock %}
