@@ -204,9 +204,22 @@ class SearchSummary(models.Model):
 
 
 
-# ฟังก์ชันสำหรับบันทึก Search Log และสร้าง FAQ อัตโนมัติเมื่อมีการค้นหาซ้ำกันเกินกำหนด
+# ─────────────────────────────────────────────
+#  แก้ไข: ฟังก์ชันสำหรับบันทึก Search Log
+#  และสร้าง FAQ อัตโนมัติเมื่อมีการค้นหาซ้ำกันเกินกำหนด
+# ─────────────────────────────────────────────
+
+FAQ_THRESHOLD = 5  # เปลี่ยนตรงนี้ที่เดียวถ้าต้องการปรับ
+
+LIGHT_LABELS = {'low': 'น้อย', 'medium': 'ปานกลาง', 'high': 'มาก'}
+WATER_LABELS = {'low': 'น้อย', 'medium': 'ปานกลาง', 'high': 'มาก'}
+HUMIDITY_LABELS = {'low': 'ต่ำ', 'medium': 'ปานกลาง', 'high': 'สูง'}
+
+
 def record_search(filter_light=None, filter_water=None, filter_humidity=None, filter_category=None):
-    # 1. บันทึก SearchLog
+    """บันทึก log ดิบ + อัปเดต summary + auto gen FAQ ถ้าถึง threshold"""
+
+    # 1. บันทึก SearchLog (ดิบ ไม่ต้องแก้)
     SearchLog.objects.create(
         filter_light=filter_light,
         filter_water=filter_water,
@@ -221,28 +234,50 @@ def record_search(filter_light=None, filter_water=None, filter_humidity=None, fi
         filter_humidity=filter_humidity,
         category=filter_category
     )
-    summary.search_count += 1
+    if not created:
+        summary.search_count += 1
+    else:
+        summary.search_count = 1
+    summary.save()
 
-    # 3. สร้าง FAQ อัตโนมัติถ้ามีการค้นหาซ้ำเกิน 5 ครั้งขึ้นไป และยังไม่มี FAQ ผูกอยู่
-    if summary.search_count >= 5 and not summary.faq:
-        conditions = []
-        if filter_category:
-            conditions.append(f"หมวดหมู่ {filter_category.category_name}")
-        if filter_light:
-            conditions.append(f"แสง: {filter_light}")
-        if filter_water:
-            conditions.append(f"น้ำ: {filter_water}")
-        if filter_humidity:
-            conditions.append(f"ความชื้น: {filter_humidity}")
+    # 3. auto gen FAQ ถ้าถึง threshold และยังไม่มี FAQ ผูกอยู่
+    if summary.search_count >= FAQ_THRESHOLD and summary.faq is None:
+        _auto_generate_faq(summary)
 
-        cond_str = ", ".join(conditions) if conditions else "เงื่อนไขทั่วไป"
-        faq_title = f"พืชที่เหมาะกับ {cond_str}"
-        faq_answer = f"สำหรับการค้นหาเงื่อนไข {cond_str} ระบบขอแนะนำให้เลือกพืชที่มีคุณสมบัติตรงกับสภาพแวดล้อมดังกล่าวเพื่อการเจริญเติบโตที่ดีที่สุด"
 
-        new_faq = Faq.objects.create(
-            title=faq_title[:50],  # ตัดไม่ให้เกิน max_length=50
-            answer_text=faq_answer
-        )
-        summary.faq = new_faq
+def _auto_generate_faq(summary: "SearchSummary"):
+    """สร้าง FAQ อัตโนมัติจาก filter combo ใน summary โดยดึงรายชื่อพืชจริงมาใส่คำตอบ"""
 
+    # --- สร้างข้อความเงื่อนไข (เฉพาะที่มีค่าจริง ไม่ใช่ None) ---
+    parts = []
+    if summary.filter_light:
+        parts.append(f"แสง{LIGHT_LABELS.get(summary.filter_light, summary.filter_light)}")
+    if summary.filter_water:
+        parts.append(f"น้ำ{WATER_LABELS.get(summary.filter_water, summary.filter_water)}")
+    if summary.filter_humidity:
+        parts.append(f"ความชื้น{HUMIDITY_LABELS.get(summary.filter_humidity, summary.filter_humidity)}")
+    if summary.category:
+        parts.append(f"หมวด{summary.category.category_name}")
+
+    condition_str = ", ".join(parts) if parts else "ทุกประเภท"
+
+    # --- query พืชจริงที่ตรงกับเงื่อนไข ---
+    plants = Plant.objects.all()
+    if summary.filter_light:
+        plants = plants.filter(light=summary.filter_light)
+    if summary.filter_water:
+        plants = plants.filter(water=summary.filter_water)
+    if summary.filter_humidity:
+        plants = plants.filter(humidity=summary.filter_humidity)
+    if summary.category:
+        plants = plants.filter(category=summary.category)
+
+    answer = ", ".join(p.plant_name for p in plants) or "ยังไม่มีข้อมูลพืชที่ตรงกับเงื่อนไขนี้ในระบบ"
+
+    faq = Faq.objects.create(
+        title=f"พืชที่เหมาะกับ {condition_str}"[:50],  # ตัดไม่ให้เกิน max_length=50
+        answer_text=f"พืชที่แนะนำ ได้แก่: {answer}",
+    )
+
+    summary.faq = faq
     summary.save()
