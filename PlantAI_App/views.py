@@ -93,11 +93,11 @@ def index(request):
     plants = Plant.objects.all()
     categories = PlantCategory.objects.all()
 
-    category_id = request.GET.get('category')
-    light = request.GET.get('light')
-    water = request.GET.get('water')
-    humidity = request.GET.get('humidity')
-    search = request.GET.get('search')
+    category_id = request.GET.get('category') or ''
+    light = request.GET.get('light') or ''
+    water = request.GET.get('water') or ''
+    humidity = request.GET.get('humidity') or ''
+    search = request.GET.get('search') or ''
 
     if category_id:
         plants = plants.filter(category_id=category_id)
