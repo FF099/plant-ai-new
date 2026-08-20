@@ -1,3 +1,4 @@
+import re
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse
 from django.core.paginator import Paginator
@@ -14,7 +15,38 @@ client = OpenAI(api_key=getattr(settings, 'OPENAI_API_KEY', ''))
 
 
 # ─────────────────────────────────────────────
-#  Custom Decorator สำหรับตรวจสอบการเข้าสู่ระบบผู้ดูแลระบบ
+#  1. Map คีย์เวิร์ดภาษาไทย -> Value จริงใน Database ('low', 'medium', 'high')
+# ─────────────────────────────────────────────
+LIGHT_MAP = {
+    'low': ["แสงน้อย", "ในร่ม", "ในบ้าน", "ห้องนอน", "โต๊ะทำงาน", "ไม่ชอบแดด", "ไม่โดนแดด", "แสงรำไรน้อย", "ร่มรื่น", "มุมมืด"],
+    'medium': ["แสงปานกลาง", "รำไร", "แสงรำไร", "แดดเช้า", "แดดอ่อน", "โต๊ะริมหน้าต่าง", "แดดรำไร", "แดดไม่แรง"],
+    'high': ["แสงมาก", "แสงแดดจ้า", "แดดจัด", "กลางแจ้ง", "แดดแรง", "แดดตลอดวัน", "ชอบแดด", "ทนแดด", "แดด 100", "ระเบียง"]
+}
+
+WATER_MAP = {
+    'low': ["น้ำน้อย", "รดน้ำน้อย", "ทนแล้ง", "ไม่ชอบน้ำ", "อาทิตย์ละครั้ง", "สัปดาห์ละครั้ง", "นานๆ รด", "ไม่ค่อยรดน้ำ", "ลืมรดน้ำ"],
+    'medium': ["น้ำปานกลาง", "รดน้ำปานกลาง", "วันเว้นวัน", "2-3 วัน", "ชุ่มชื้นพอดี"],
+    'high': ["น้ำมาก", "รดน้ำมาก", "ชอบน้ำ", "รดน้ำทุกวัน", "ชอบแช่น้ำ", "น้ำชุ่ม", "ชอบความชุ่มฉ่ำ"]
+}
+
+HUMIDITY_MAP = {
+    'low': ["ความชื้นต่ำ", "อากาศแห้ง", "ห้องแอร์", "แห้งๆ"],
+    'medium': ["ความชื้นปานกลาง"],
+    'high': ["ความชื้นสูง", "ชอบชื้น", "ชื้นมาก", "ห้องน้ำ", "โรงเรือน", "ละอองน้ำ"]
+}
+
+CATEGORY_SYNONYMS = {
+    "ไม้คลุมดิน": ["คลุมดิน"],
+    "ไม้ล้มลุก": ["ล้มลุก"],
+    "ไม้พุ่ม": ["พุ่ม"],
+    "ไม้ยืนต้น": ["ยืนต้น", "ต้นไม้ใหญ่"],
+    "ไม้เลื้อย": ["เลื้อย", "ไม้เถา", "เถา"],
+    "ไม้ประดับอื่น": ["ไม้ประดับ", "ประดับ", "อื่นๆ", "อื่น ๆ", "ทั่วไป"],
+}
+
+
+# ─────────────────────────────────────────────
+#  2. Custom Decorator สำหรับตรวจสอบการเข้าสู่ระบบผู้ดูแลระบบ
 # ─────────────────────────────────────────────
 def admin_required(view_func):
     def wrapper(request, *args, **kwargs):
@@ -25,69 +57,105 @@ def admin_required(view_func):
 
 
 # ─────────────────────────────────────────────
-#  RAG — ค้นหาข้อมูลพืชจาก DB ตามคำถามผู้ใช้
+#  2. RAG — ค้นหาข้อมูลพืชจาก DB ตามคำถามผู้ใช้
 # ─────────────────────────────────────────────
 def get_plant_context(user_input):
     plants = Plant.objects.select_related('category').all()
     user_input_lower = user_input.lower()
+    user_input_clean = re.sub(r'[\sๆ]', '', user_input_lower)
 
     attr_query = Q()
     has_attr = False
 
-    # ตรวจหาคีย์เวิร์ดระดับแสง (ตรงกับฟิลด์ภาษาไทย)
-    if any(k in user_input_lower for k in ["แสงน้อย", "ในร่ม"]):
-        attr_query &= Q(light__icontains="แสงน้อย"); has_attr = True
-    elif any(k in user_input_lower for k in ["แสงปานกลาง", "รำไร"]):
-        attr_query &= Q(light__icontains="แสงปานกลาง"); has_attr = True
-    elif any(k in user_input_lower for k in ["แสงแดดจ้า", "แสงมาก", "แดดจัด", "กลางแจ้ง"]):
-        attr_query &= Q(light__icontains="แสงแดดจ้า"); has_attr = True
+    selected_light = None
+    selected_water = None
+    selected_humidity = None
+    selected_category_obj = None
 
-    # ตรวจหาคีย์เวิร์ดระดับน้ำ
-    if "น้ำน้อย" in user_input_lower or "รดน้ำน้อย" in user_input_lower:
-        attr_query &= Q(water__icontains="น้อย"); has_attr = True
-    elif "น้ำปานกลาง" in user_input_lower or "รดน้ำปานกลาง" in user_input_lower:
-        attr_query &= Q(water__icontains="ปานกลาง"); has_attr = True
-    elif "น้ำมาก" in user_input_lower or "รดน้ำมาก" in user_input_lower:
-        attr_query &= Q(water__icontains="มาก"); has_attr = True
+    # A. ตรวจหาแสง
+    for db_val, keywords in LIGHT_MAP.items():
+        if any(kw in user_input_lower for kw in keywords):
+            attr_query &= Q(light=db_val)
+            selected_light = db_val
+            has_attr = True
+            break
 
-    # ตรวจหาคีย์เวิร์ดระดับความชื้น
-    if "ความชื้นต่ำ" in user_input_lower:
-        attr_query &= Q(humidity__icontains="ต่ำ"); has_attr = True
-    elif "ความชื้นปานกลาง" in user_input_lower:
-        attr_query &= Q(humidity__icontains="ปานกลาง"); has_attr = True
-    elif "ความชื้นสูง" in user_input_lower:
-        attr_query &= Q(humidity__icontains="สูง"); has_attr = True
+    # B. ตรวจหาน้ำ
+    for db_val, keywords in WATER_MAP.items():
+        if any(kw in user_input_lower for kw in keywords):
+            attr_query &= Q(water=db_val)
+            selected_water = db_val
+            has_attr = True
+            break
 
+    # C. ตรวจหาความชื้น
+    for db_val, keywords in HUMIDITY_MAP.items():
+        if any(kw in user_input_lower for kw in keywords):
+            attr_query &= Q(humidity=db_val)
+            selected_humidity = db_val
+            has_attr = True
+            break
+
+    # D. ตรวจหาหมวดหมู่
+    matched_category_ids = set()
+    db_categories = PlantCategory.objects.all()
+    for cat in db_categories:
+        if not cat.category_name:
+            continue
+        cat_name_clean = re.sub(r'[\sๆ]', '', cat.category_name.lower())
+        
+        if len(cat_name_clean) >= 2 and cat_name_clean in user_input_clean:
+            matched_category_ids.add(cat.category_id)
+            selected_category_obj = cat
+            
+        for syn_key, syn_words in CATEGORY_SYNONYMS.items():
+            if syn_key in cat_name_clean and any(sw in user_input_lower for sw in syn_words):
+                matched_category_ids.add(cat.category_id)
+                selected_category_obj = cat
+
+    if matched_category_ids:
+        attr_query &= Q(category_id__in=list(matched_category_ids))
+        has_attr = True
+
+    # E. บันทึก SearchLog และ Query ฐานข้อมูล
     if has_attr:
-        target_plants = plants.filter(attr_query).distinct()[:10]
+        try:
+            record_search(
+                filter_light=selected_light,
+                filter_water=selected_water,
+                filter_humidity=selected_humidity,
+                filter_category=selected_category_obj
+            )
+        except Exception as e:
+            print(f"Record search log error: {e}")
+
+        target_plants = plants.filter(attr_query).distinct()
     else:
         text_search = (
             Q(plant_name__icontains=user_input) |
             Q(description__icontains=user_input) |
             Q(category__category_name__icontains=user_input)
         )
-        target_plants = plants.filter(text_search).distinct()[:10]
+        target_plants = plants.filter(text_search).distinct()
 
     if not target_plants.exists():
-        target_plants = plants.order_by('?')[:5]
+        return "ไม่พบข้อมูลต้นไม้ที่ตรงตามเงื่อนไขที่ระบุในฐานข้อมูล"
 
-    context = "ข้อมูลต้นไม้ที่ค้นพบ:\n"
+    # สร้างข้อความส่งให้ GPT (ใช้ get_FOO_display() เพื่อแปลง 'low' เป็น 'แสงน้อย' อัตโนมัติ)
+    context = "รายการต้นไม้ที่ค้นพบในระบบ:\n"
     for p in target_plants:
         context += f"""
-ชื่อ: {p.plant_name}
-หมวดหมู่: {p.category.category_name}
-รายละเอียดหมวดหมู่: {p.category.detail or "-"}
-แสง: {p.light}
-น้ำ: {p.water}
-ความชื้น: {p.humidity}
-รายละเอียด: {p.description or "-"}
+- ชื่อ: {p.plant_name}
+  หมวดหมู่: {p.category.category_name}
+  แสง: {p.get_light_display()} | น้ำ: {p.get_water_display()} | ความชื้น: {p.get_humidity_display()}
+  รายละเอียด: {p.description or "-"}
 -------------------
 """
     return context
 
 
 # ─────────────────────────────────────────────
-#  Public Views
+#  4. Public Views
 # ─────────────────────────────────────────────
 def index(request):
     plants = Plant.objects.all()
@@ -164,33 +232,27 @@ def chat_with_llm(request):
                 {
                     "role": "system",
                     "content": f"""
-                    คุณคือผู้เชี่ยวชาญด้านต้นไม้ ตอบภาษาไทยเท่านั้น
+คุณคือผู้ช่วยแนะนำต้นไม้ ตอบภาษาไทยอย่างเป็นกันเองและกระชับ
 
-                    ใช้ข้อมูลจากฐานข้อมูลนี้เท่านั้น:
-                    {context_data}
+[ข้อมูลอ้างอิงจากฐานข้อมูล]
+{context_data}
 
-                    กติกาการตอบ:
+[กฎเหล็กในการตอบคำถาม - ต้องปฏิบัติตามอย่างเคร่งครัด]:
+1. **ใช้อ้างอิงจากฐานข้อมูลเท่านั้น**: ห้ามคิดชื่อต้นไม้เอง ห้ามใช้ความรู้ภายนอกเด็ดขาด! ให้ใช้เฉพาะรายชื่อต้นไม้ที่ปรากฏอยู่ใน [ข้อมูลอ้างอิงจากฐานข้อมูล] ด้านบนเท่านั้น
 
-                    1. ถ้าเป็นคำทักทายหรือสอบถามทั่วไป (เช่น สวัสดี, เป็นยังไงบ้าง):
-                    - ตอบสั้น ๆ สุภาพ และแจ้งว่าช่วยแนะนำเรื่องต้นไม้ได้
+2. **กรณีไม่พบข้อมูล**: หากข้อมูลอ้างอิงระบุว่า "ไม่พบข้อมูลต้นไม้..." ให้ตอบว่า:
+   "ขออภัยครับ ไม่พบข้อมูลต้นไม้ที่ตรงตามเงื่อนไขในระบบครับ"
 
-                    2. ถ้าคำถามเกี่ยวข้องกับต้นไม้ (ทางตรง/ทางอ้อม เช่น พูดถึงแสง, น้ำ, ความชื้น, ชื่อพันธุ์, หมวดหมู่):
-                    - ให้ใช้เฉพาะ "ข้อมูลต้นไม้ที่ค้นพบ" ด้านบนเท่านั้น ห้ามอ้างอิงต้นไม้ที่ไม่มีในลิสต์
-                    - ถ้าถามหาต้นไม้ตามคุณสมบัติ (เช่น "ต้นไม้แสงมาก", "ขอรายชื่อ...") → ตอบเป็น "รายชื่อ" เท่านั้น ไม่ต้องอธิบายทีละต้น เช่น "ต้นไม้ที่เหมาะกับแสงมาก ได้แก่: A, B, C"
-                    - ถ้าถามชื่อต้นไม้เจาะจง หรือขอคำแนะนำทั่วไป → แนะนำ 1 ชนิดพร้อมเหตุผลสั้นๆ
-                    - ถ้าระบุจำนวน → ตอบตามจำนวนที่ขอ
+3. **กรณีพบข้อมูลต้นไม้**:
+   - หากผู้ใช้พิมพ์ค้นหาด้วยคุณสมบัติ/หมวดหมู่สั้นๆ (เช่น "แสงน้อย", "น้ำปานกลาง", "ไม้ล้มลุก") ให้แสดงรายชื่อต้นไม้ที่มีในข้อมูลอ้างอิงออกมาเป็นข้อๆ (1., 2., 3., ...) โดยดึงชื่อจาก DB มาตรงๆ
+   - หากผู้ใช้ขอคำแนะนำหรือระบุสถานที่ ให้เลือกต้นไม้จากข้อมูลอ้างอิงมา 1-2 ต้นพร้อมอธิบายสั้นๆ
 
-                    การตอบ:
-                    - พื้นฐาน → แนะนำ 1 ชนิดที่เหมาะที่สุด: "แนะนำเป็น '[ชื่อ]' เพราะ [เหตุผลสั้น ๆ]"
-                    - ถ้าผู้ใช้ระบุจำนวน เช่น "ขอ 3 ชนิด", "สัก 5 ต้น" → ตอบตามจำนวนที่ขอ
-                    - ถ้าขอเฉพาะชื่อ → ตอบเฉพาะชื่อ ไม่ต้องอธิบาย
-
-                    3. ถ้าไม่เกี่ยวกับต้นไม้เลย:
-                    - ตอบว่า "ขออภัย ระบบนี้แนะนำเฉพาะต้นไม้เท่านั้น"
-                    """,
+4. **กรณีคำทักทาย**: หากพิมพ์แค่คำทักทาย ให้ตอบรับสุภาพและบอกว่าพร้อมแนะนำต้นไม้จากฐานข้อมูล
+"""
                 },
                 {"role": "user", "content": user_input},
             ],
+            temperature=0.2,  # ปรับ temperature ให้ต่ำลงเพื่อป้องกันโมเดลแต่งคำตอบเอง
         )
 
         return JsonResponse({'reply': completion.choices[0].message.content})
@@ -201,7 +263,7 @@ def chat_with_llm(request):
 
 
 # ─────────────────────────────────────────────
-#  Authentication Views (Custom Session)
+#  5. Authentication Views (Custom Session)
 # ─────────────────────────────────────────────
 def login_view(request):
     error_message = None
@@ -230,7 +292,7 @@ def logout_view(request):
 
 
 # ─────────────────────────────────────────────
-#  Management Views (Admin Scope)
+#  6. Management Views (Admin Scope)
 # ─────────────────────────────────────────────
 @admin_required
 def management_view(request):

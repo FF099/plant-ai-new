@@ -81,9 +81,9 @@
                 <span class="badge bg-secondary mb-2">{{ plant.category.category_name }}</span>
                 <p class="card-text text-muted">{{ plant.description|default:"ไม่มีรายละเอียด"|truncatewords:15 }}</p>
                 <div class="small text-dark mt-2">
-                    <div>☀️ แสง: {{ plant.light }}</div>
-                    <div>💧 น้ำ: {{ plant.water }}</div>
-                    <div>💦 ความชื้น: {{ plant.humidity }}</div>
+                    <div>☀️ แสง: {{ plant.get_light_display }}</div>
+                    <div>💧 น้ำ: {{ plant.get_water_display }}</div>
+                    <div>💦 ความชื้น: {{ plant.get_humidity_display }}</div>
                 </div>
             </div>
         </div>

@@ -93,7 +93,6 @@ class Plant(models.Model):
     plant_id = models.CharField(primary_key=True, max_length=11, editable=False)
     plant_name = models.CharField(max_length=50)
     
-    # ใช้ choices และขยาย max_length เป็น 20 เพื่อความปลอดภัย
     light = models.CharField(max_length=10, choices=LIGHT_CHOICES)
     water = models.CharField(max_length=10, choices=WATER_CHOICES)
     humidity = models.CharField(max_length=10, choices=HUMIDITY_CHOICES)
