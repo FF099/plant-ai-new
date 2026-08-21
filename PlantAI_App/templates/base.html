@@ -1,23 +1,30 @@
 <!DOCTYPE html>
+<!-- base.html : Template หลักของทั้งเว็บไซต์ ทุกหน้าจะ // extends 'base.html' // เพื่อใช้โครงสร้างนี้ร่วมกัน -->
 <html lang="th">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     {% load static %}
+    <!-- โหลด Bootstrap CSS (จากไฟล์ static ในโปรเจกต์ ไม่ได้ใช้ CDN) -->
     <link rel="stylesheet" href="{% static 'plants/vendor/bootstrap/css/bootstrap.min.css' %}">
+    <!-- CSS หลักของเว็บไซต์ (ธีม, สี, layout พื้นฐาน) -->
     <link rel="stylesheet" href="{% static 'plants/css/style_base.css' %}">
     {% block title %}
+    <!-- ค่าเริ่มต้นของ <title> หน้าเว็บ: หน้าลูกสามารถ override บล็อกนี้เพื่อเปลี่ยนชื่อ tab ได้ -->
     <title>Plant AI</title>
     {% endblock %}
 </head>
 <body>
+    <!-- แถบเมนูด้านบน (Navbar) แสดงทุกหน้าเพราะอยู่ใน base.html -->
     <nav class="navbar navbar-expand-lg navbar-plant">
         <div class="container">
             <a class="navbar-brand" href="/">🌿 PlantAI</a>
+            <!-- ปุ่ม hamburger สำหรับจอมือถือ (Bootstrap collapse toggler) -->
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse justify-content-between" id="navbarNav">
+                <!-- เมนูฝั่งซ้าย: ลิงก์ที่ผู้ใช้ทุกคนเห็นเหมือนกัน -->
                 <ul class="navbar-nav">
                     <li class="nav-item">
                         <a class="nav-link" href="/">หน้าแรก</a>
@@ -27,17 +34,21 @@
                     </li>
                 </ul>
 
+                <!-- เมนูฝั่งขวา: เปลี่ยนตามสถานะการ login (เช็คจาก session ที่ view login_view ตั้งค่าไว้) -->
                 <ul class="navbar-nav">
                     {% if request.session.admin_id %}
+                        <!-- ถ้า login อยู่: แสดงชื่อ admin ที่ login พร้อมลิงก์ไปหน้าจัดการระบบ -->
                         <li class="nav-item">
                             <a href="/management" class="nav-link fw-bold">
                                 จัดการระบบ ({{ request.session.admin_username }})
                             </a>
                         </li>
+                        <!-- ปุ่มออกจากระบบ เรียก view logout_view ซึ่งจะล้าง session -->
                         <li class="nav-item">
                             <a href="{% url 'logout' %}" class="nav-link text-danger">ออกจากระบบ</a>
                         </li>
                     {% else %}
+                        <!-- ถ้ายังไม่ login: แสดงลิงก์ไปหน้า login แทน -->
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'login' %}">เข้าสู่ระบบผู้ดูแล</a>
                         </li>
@@ -47,12 +58,15 @@
         </div>
     </nav>
 
+    <!-- เนื้อหาหลักของแต่ละหน้า: หน้าลูกจะเติมเนื้อหาผ่าน // block content // นี้ -->
     <div class="container py-4">
         {% block content %}
         {% endblock %}
     </div>
 
+    <!-- โหลด Bootstrap JS bundle (รวม Popper.js) ไว้ท้ายหน้า เพื่อให้ dropdown/collapse ทำงานได้ -->
     <script src="{% static 'plants/vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+    <!-- บล็อกสำหรับให้หน้าลูกแทรก <script> เพิ่มเติมเฉพาะหน้าตัวเอง (เช่น chat.js) -->
     {% block footer %}
     {% endblock %}
 </body>

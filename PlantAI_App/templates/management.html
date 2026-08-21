@@ -1,13 +1,17 @@
+<!-- management.html : หน้าจัดการระบบหลังบ้าน (ต้อง login ก่อนถึงจะเข้าได้ ครอบด้วย @admin_required ที่ view)
+     มี 4 แท็บย่อย: จัดการพืช / หมวดหมู่พืช / FAQ / ผู้ดูแลระบบ สลับด้วย query string ?tab=... -->
 {% extends 'base.html' %}
 {% block content %}
 {% load static %}
 <link rel="stylesheet" href="{% static 'plants/css/style_admin.css' %}">
 
+<!-- หัวข้อหลักของหน้าจัดการระบบ -->
 <div class="admin-hero">
     <h2>จัดการระบบข้อมูลพืช</h2>
     <p>เพิ่ม แก้ไข และดูแลข้อมูลพืช หมวดหมู่ FAQ และผู้ดูแลระบบ</p>
 </div>
 
+<!-- แถบแท็บ: แต่ละลิงก์เปลี่ยนค่า ?tab=... บน URL แท็บที่ตรงกับตัวแปร tab (จาก view) จะได้ class active -->
 <ul class="nav nav-tabs-plant">
     <li class="nav-item">
         <a class="nav-link {% if tab == 'plants' %}active{% endif %}" href="?tab=plants">จัดการพืช</a>
@@ -25,9 +29,11 @@
 
 <div class="tab-content">
     <!-- 1. จัดการพืช -->
+    <!-- แสดงเมื่อ tab == 'plants' (ค่าเริ่มต้นจาก view ถ้าไม่ระบุ ?tab= เลย) -->
     {% if tab == 'plants' %}
     <div class="section-header">
         <h4>รายการข้อมูลพืช</h4>
+        <!-- ลิงก์ไปหน้าเพิ่มพืชใหม่ (view: plant_add) -->
         <a href="{% url 'plant_add' %}" class="btn btn-plant-primary">+ เพิ่มพืช</a>
     </div>
     <div class="table-plant-wrap">
@@ -43,6 +49,7 @@
                 </tr>
             </thead>
             <tbody>
+                <!-- วน loop แสดงพืชทุกตัวที่ view ส่งมา (plants) -->
                 {% for p in plants %}
                 <tr>
                     <td><strong>{{ p.plant_id }}</strong></td>
@@ -51,11 +58,14 @@
                     <td>{{ p.get_light_display }} / {{ p.get_water_display }} / {{ p.get_humidity_display }}</td>
                     <td>{{ p.admin.username }}</td>
                     <td>
+                        <!-- ปุ่มแก้ไข: ไปหน้าฟอร์มแก้ไขพืชนี้ (ส่ง plant_id เป็น pk) -->
                         <a href="{% url 'plant_edit' p.plant_id %}" class="btn btn-plant-warning">แก้ไข</a>
+                        <!-- ปุ่มลบ: มี confirm() dialog ป้องกันการกดลบพลาด ก่อนเรียก view plant_delete จริง -->
                         <a href="{% url 'plant_delete' p.plant_id %}" class="btn btn-plant-danger" onclick="return confirm('ยืนยันการลบ?')">ลบ</a>
                     </td>
                 </tr>
                 {% empty %}
+                <!-- ถ้ายังไม่มีข้อมูลพืชเลยในระบบ -->
                 <tr><td colspan="6" class="text-center text-muted py-4">ไม่พบข้อมูลพืช</td></tr>
                 {% endfor %}
             </tbody>
@@ -66,6 +76,7 @@
     {% elif tab == 'categories' %}
     <div class="section-header">
         <h4>รายการหมวดหมู่พืช</h4>
+        <!-- ลิงก์ไปหน้าเพิ่มหมวดหมู่ใหม่ (view: category_add) -->
         <a href="{% url 'category_add' %}" class="btn btn-plant-primary">+ เพิ่มหมวดหมู่</a>
     </div>
     <div class="table-plant-wrap">
@@ -80,6 +91,7 @@
                 </tr>
             </thead>
             <tbody>
+                <!-- วน loop แสดงหมวดหมู่ทั้งหมด (categories) -->
                 {% for c in categories %}
                 <tr>
                     <td><strong>{{ c.category_id }}</strong></td>
@@ -87,7 +99,10 @@
                     <td>{{ c.detail|default:"-" }}</td>
                     <td>{{ c.admin.username }}</td>
                     <td>
+                        <!-- ปุ่มแก้ไขหมวดหมู่นี้ -->
                         <a href="{% url 'category_edit' c.category_id %}" class="btn btn-plant-warning">แก้ไข</a>
+                        <!-- ปุ่มลบหมวดหมู่นี้ (มี confirm ป้องกันกดพลาด)
+                             หมายเหตุ: การลบหมวดหมู่จะลบพืชในหมวดนี้ทั้งหมดด้วย เพราะ Plant ผูก category แบบ CASCADE -->
                         <a href="{% url 'category_delete' c.category_id %}" class="btn btn-plant-danger" onclick="return confirm('ยืนยันการลบ?')">ลบ</a>
                     </td>
                 </tr>
@@ -99,6 +114,8 @@
     </div>
 
     <!-- 3. จัดการ FAQ -->
+    <!-- หมายเหตุ: แท็บนี้ไม่มีปุ่ม "เพิ่ม" เพราะ FAQ ส่วนใหญ่ถูกสร้างอัตโนมัติจากระบบค้นหาซ้ำ (ดู _auto_generate_faq ใน models.py)
+         admin ทำได้แค่ดูและลบเท่านั้น -->
     {% elif tab == 'faqs' %}
     <div class="section-header">
         <h4>รายการคำถามที่พบบ่อย (FAQ)</h4>
@@ -115,13 +132,16 @@
                 </tr>
             </thead>
             <tbody>
+                <!-- วน loop แสดง FAQ ทั้งหมด (faqs) เรียงตามที่ view ส่งมา -->
                 {% for f in faqs %}
                 <tr>
                     <td><strong>{{ f.faq_id }}</strong></td>
                     <td>{{ f.title }}</td>
                     <td>{{ f.answer_text }}</td>
+                    <!-- format วันที่แบบไทย: วัน/เดือน/ปี ชั่วโมง:นาที -->
                     <td>{{ f.created_at|date:"d/m/Y H:i" }}</td>
                     <td>
+                        <!-- ปุ่มลบ FAQ นี้ (มี confirm ป้องกันกดพลาด) -->
                         <a href="{% url 'faq_delete' f.faq_id %}" class="btn btn-plant-danger" onclick="return confirm('ยืนยันการลบ?')">ลบ</a>
                     </td>
                 </tr>
@@ -133,9 +153,11 @@
     </div>
 
     <!-- 4. จัดการ Admin -->
+    <!-- หมายเหตุ: ไม่มีปุ่มลบผู้ดูแลระบบในแท็บนี้ (urls.py ก็ไม่มี path สำหรับ admin_delete) มีแค่เพิ่ม/แก้ไขเท่านั้น -->
     {% elif tab == 'admins' %}
     <div class="section-header">
         <h4>รายการผู้ดูแลระบบ</h4>
+        <!-- ลิงก์ไปหน้าเพิ่มผู้ดูแลระบบใหม่ (view: admin_add) -->
         <a href="{% url 'admin_add' %}" class="btn btn-plant-primary">+ เพิ่มผู้ดูแลระบบ</a>
     </div>
     <div class="table-plant-wrap">
@@ -149,12 +171,14 @@
                 </tr>
             </thead>
             <tbody>
+                <!-- วน loop แสดงผู้ดูแลระบบทั้งหมด (admins) -->
                 {% for a in admins %}
                 <tr>
                     <td><strong>{{ a.admin_id }}</strong></td>
                     <td>{{ a.username }}</td>
                     <td>{{ a.email }}</td>
                     <td>
+                        <!-- ปุ่มแก้ไขข้อมูลผู้ดูแลระบบคนนี้ -->
                         <a href="{% url 'admin_edit' a.admin_id %}" class="btn btn-plant-warning">แก้ไข</a>
                     </td>
                 </tr>

@@ -1,12 +1,15 @@
+<!-- login.html : หน้าเข้าสู่ระบบสำหรับผู้ดูแลระบบ (ผูกกับ view login_view และ form AdminLoginForm) -->
 {% extends 'base.html' %}
 {% block content %}
 {% load static %}
 <link rel="stylesheet" href="{% static 'plants/css/style_admin.css' %}">
 
+<!-- กล่อง login จัดกึ่งกลางหน้าจอ -->
 <div class="login-wrap">
     <div class="login-card">
         <h4 class="mb-3 text-center">เข้าสู่ระบบผู้ดูแลระบบ</h4>
         {% if error %}
+            <!-- ข้อความแจ้งเตือน error (เช่น username/password ผิด) ที่ view ส่งมาผ่านตัวแปร error -->
             <div class="alert alert-danger" role="alert">
                 {{ error }}
             </div>
@@ -15,12 +18,15 @@
             {% csrf_token %}
             <div class="mb-3">
                 <label class="form-label">ชื่อผู้ใช้</label>
+                <!-- render เฉพาะ input field ของ username (ไม่ใช้ form.as_p เพราะต้องการคุม label เอง) -->
                 {{ form.username }}
             </div>
             <div class="mb-3">
                 <label class="form-label">รหัสผ่าน</label>
+                <!-- render เฉพาะ input field ของ password (เป็น PasswordInput ตามที่กำหนดใน forms.py) -->
                 {{ form.password }}
             </div>
+            <!-- ปุ่ม submit เต็มความกว้าง (w-100) เพื่อส่งฟอร์มไปตรวจสอบที่ login_view -->
             <button type="submit" class="btn btn-plant-primary w-100">เข้าสู่ระบบ</button>
         </form>
     </div>

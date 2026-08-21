@@ -1,9 +1,12 @@
 <!-- plant_form.html -->
+<!-- ใช้ฟอร์มเดียวกันทั้งตอน "เพิ่ม" (plant_add) และ "แก้ไข" (plant_edit) ข้อมูลพืช
+     view จะส่งตัวแปร form และ title มาให้ต่างกันตามการใช้งาน -->
 {% extends 'base.html' %}
 {% block content %}
 {% load static %}
 <link rel="stylesheet" href="{% static 'plants/css/style_admin.css' %}">
 
+<!-- ส่วนหัวหน้า: แสดงชื่อฟอร์ม (เพิ่ม/แก้ไขข้อมูลพืช) ที่ส่งมาจาก view -->
 <div class="admin-hero">
     <h2>{{ title }}</h2>
     <p>กรอกรายละเอียดข้อมูลพืชด้านล่าง</p>
@@ -12,9 +15,12 @@
 <div class="form-card">
     <form method="post">
         {% csrf_token %}
+        <!-- render ฟิลด์ของ PlantForm อัตโนมัติ: plant_name, category, light, water, humidity, description
+             ตัวเลือก category/light/water/humidity จะแสดงเป็น dropdown ตามที่กำหนด widget ไว้ใน forms.py -->
         {{ form.as_p }}
         <div class="form-actions">
             <button type="submit" class="btn btn-plant-primary">บันทึก</button>
+            <!-- กลับไปหน้าจัดการระบบ แท็บพืช โดยไม่บันทึก -->
             <a href="{% url 'management' %}?tab=plants" class="btn btn-plant-secondary">ยกเลิก</a>
         </div>
     </form>

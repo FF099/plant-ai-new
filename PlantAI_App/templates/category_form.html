@@ -1,9 +1,12 @@
 <!-- category_form.html -->
+<!-- ใช้ฟอร์มเดียวกันทั้งตอน "เพิ่ม" (category_add) และ "แก้ไข" (category_edit) หมวดหมู่พืช
+     view จะส่งตัวแปร form และ title มาให้ต่างกันตามการใช้งาน -->
 {% extends 'base.html' %}
 {% block content %}
 {% load static %}
 <link rel="stylesheet" href="{% static 'plants/css/style_admin.css' %}">
 
+<!-- ส่วนหัวหน้า: แสดงชื่อฟอร์ม (เพิ่ม/แก้ไขหมวดหมู่พืช) ที่ส่งมาจาก view -->
 <div class="admin-hero">
     <h2>{{ title }}</h2>
     <p>กรอกรายละเอียดหมวดหมู่พืชด้านล่าง</p>
@@ -12,9 +15,11 @@
 <div class="form-card">
     <form method="post">
         {% csrf_token %}
+        <!-- render ฟิลด์ของ PlantCategoryForm อัตโนมัติ: category_name, detail -->
         {{ form.as_p }}
         <div class="form-actions">
             <button type="submit" class="btn btn-plant-primary">บันทึก</button>
+            <!-- กลับไปหน้าจัดการระบบ แท็บหมวดหมู่ โดยไม่บันทึก -->
             <a href="{% url 'management' %}?tab=categories" class="btn btn-plant-secondary">ยกเลิก</a>
         </div>
     </form>

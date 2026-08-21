@@ -1,3 +1,5 @@
+<!-- index.html : หน้าแรกของเว็บไซต์ แสดงรายการพืชทั้งหมด พร้อมระบบค้นหา/filter, แบ่งหน้า, และ FAQ ยอดนิยม
+     ข้อมูลทั้งหมดในหน้านี้มาจาก view: index (ดู views.py) -->
 {% extends "base.html" %}
 
 {% block title %}
@@ -8,19 +10,24 @@
 {% load static %}
 <link rel="stylesheet" href="{% static 'plants/css/style_index.css' %}">
 
+<!-- หัวข้อหลักของหน้า -->
 <div class="page-hero text-center">
     <h2>Plant AI</h2>
     <p>ค้นหาพืชและไม้ประดับที่เหมาะกับสภาพแวดล้อมของคุณ</p>
 </div>
 
-<!-- Search Card -->
+<!-- Search Card: ฟอร์มค้นหา/filter พืช ส่งแบบ GET เพื่อให้ผลลัพธ์ปรากฏเป็น query string บน URL
+     (เช่น ?search=...&category=...&light=...) และสามารถกดแชร์ลิงก์ผลค้นหาได้ -->
 <div class="search-card">
     <form method="get" class="row g-3">
+        <!-- ช่องค้นหาชื่อพืชแบบพิมพ์อิสระ ค่าที่เลือกไว้เดิม (search) จะถูกเติมกลับเข้าช่องนี้ -->
         <div class="col-12">
             <input type="text" name="search" class="form-control"
                    placeholder="ค้นหาชื่อพืช..." value="{{ search|default_if_none:'' }}">
         </div>
 
+        <!-- Dropdown เลือกหมวดหมู่: วน loop จาก categories ที่ view ส่งมา
+             ตัวเลือกที่ตรงกับ selected_category (ค่าที่ผู้ใช้เลือกไว้ก่อนหน้า) จะถูก mark ว่า selected -->
         <div class="col-md-3 col-6">
             <label class="filter-row-label">หมวดหมู่</label>
             <select name="category" class="form-select">
@@ -33,6 +40,7 @@
             </select>
         </div>
 
+        <!-- Dropdown เลือกระดับแสง: ตัวเลือกคงที่ (low/medium/high) ตรงกับ LIGHT_CHOICES ใน model Plant -->
         <div class="col-md-3 col-6">
             <label class="filter-row-label">แสง</label>
             <select name="light" class="form-select">
@@ -43,6 +51,7 @@
             </select>
         </div>
 
+        <!-- Dropdown เลือกระดับน้ำ: ตรงกับ WATER_CHOICES ใน model Plant -->
         <div class="col-md-3 col-6">
             <label class="filter-row-label">น้ำ</label>
             <select name="water" class="form-select">
@@ -53,6 +62,7 @@
             </select>
         </div>
 
+        <!-- Dropdown เลือกระดับความชื้น: ตรงกับ HUMIDITY_CHOICES ใน model Plant -->
         <div class="col-md-3 col-6">
             <label class="filter-row-label">ความชื้น</label>
             <select name="humidity" class="form-select">
@@ -63,6 +73,7 @@
             </select>
         </div>
 
+        <!-- ปุ่มค้นหา (submit ฟอร์ม) และปุ่มรีเซ็ต (กลับไปหน้าแรกแบบไม่มี query string เลย) -->
         <div class="col-12 d-flex gap-2">
             <button type="submit" class="btn btn-search">ค้นหา</button>
             <a href="/" class="btn btn-reset">รีเซ็ต</a>
@@ -70,17 +81,20 @@
     </form>
 </div>
 
-<!-- Plant Results -->
+<!-- Plant Results: แสดงรายการพืชที่ตรงกับเงื่อนไข (plants คือ Page object จาก Paginator) -->
 <div class="section-label">ผลลัพธ์พืชที่ค้นพบ (พบ {{ plants.paginator.count }} รายการ)</div>
 <div class="row g-3 mb-4">
     {% for plant in plants %}
+    <!-- การ์ดแสดงข้อมูลพืชแต่ละต้น -->
     <div class="col-md-4 col-sm-6">
         <div class="plant-card">
             <div class="card-body">
                 <h5 class="card-title">{{ plant.plant_name }}</h5>
                 <span class="badge-cat">{{ plant.category.category_name }}</span>
+                <!-- ถ้าไม่มีรายละเอียดให้แสดงข้อความ default, ถ้ามีให้ตัดไม่เกิน 15 คำ -->
                 <p class="card-text">{{ plant.description|default:"ไม่มีรายละเอียด"|truncatewords:15 }}</p>
                 <div class="plant-meta">
+                    <!-- ใช้ get_FOO_display เพื่อแปลงค่า 'low'/'medium'/'high' เป็นข้อความไทยที่อ่านง่าย -->
                     <span>☀️ แสง: {{ plant.get_light_display }}</span>
                     <span>💧 น้ำ: {{ plant.get_water_display }}</span>
                     <span>💦 ความชื้น: {{ plant.get_humidity_display }}</span>
@@ -89,6 +103,7 @@
         </div>
     </div>
     {% empty %}
+    <!-- ถ้าไม่มีพืชตรงเงื่อนไขเลย แสดง empty state แทนตาราง -->
     <div class="col-12">
         <div class="empty-state">
             <span class="empty-icon">🪴</span>
@@ -98,13 +113,15 @@
     {% endfor %}
 </div>
 
-<!-- Pagination -->
+<!-- Pagination: แสดงเฉพาะเมื่อมีมากกว่า 1 หน้า (has_other_pages) -->
 {% if plants.has_other_pages %}
 <nav aria-label="Page navigation" class="my-4">
 
     <ul class="pagination justify-content-center">
 
         <!-- ก่อนหน้า -->
+        <!-- ปุ่ม "ก่อนหน้า": ถ้ามีหน้าก่อนหน้าอยู่ ให้ลิงก์ไปหน้านั้นพร้อมคง filter เดิมทั้งหมดไว้ใน query string
+             ถ้าอยู่หน้าแรกแล้ว (ไม่มี previous) ปุ่มจะถูก disable และลิงก์ไปที่ # แทน -->
         <li class="page-item {% if not plants.has_previous %}disabled{% endif %}">
             <a class="page-link"
                href="{% if plants.has_previous %}?page={{ plants.previous_page_number }}&search={{ search|default_if_none:'' }}&category={{ selected_category|default_if_none:'' }}&light={{ selected_light|default_if_none:'' }}&water={{ selected_water|default_if_none:'' }}&humidity={{ selected_humidity|default_if_none:'' }}{% else %}#{% endif %}">
@@ -113,6 +130,8 @@
         </li>
 
         <!-- เลขหน้า -->
+        <!-- วน loop แสดงเลขหน้าทั้งหมด (page_range) หน้าปัจจุบันจะแสดงเป็นตัวเลขเฉยๆ (ไม่ใช่ลิงก์) และมี class active
+             หน้าอื่นๆ จะเป็นลิงก์ที่คง filter เดิมไว้เหมือนปุ่มก่อนหน้า/ถัดไป -->
         {% for num in plants.paginator.page_range %}
 
             {% if plants.number == num %}
@@ -131,6 +150,7 @@
         {% endfor %}
 
         <!-- ถัดไป -->
+        <!-- ปุ่ม "ถัดไป": ตรรกะเดียวกับปุ่มก่อนหน้า แต่เช็ค has_next / next_page_number แทน -->
         <li class="page-item {% if not plants.has_next %}disabled{% endif %}">
             <a class="page-link"
                href="{% if plants.has_next %}?page={{ plants.next_page_number }}&search={{ search|default_if_none:'' }}&category={{ selected_category|default_if_none:'' }}&light={{ selected_light|default_if_none:'' }}&water={{ selected_water|default_if_none:'' }}&humidity={{ selected_humidity|default_if_none:'' }}{% else %}#{% endif %}">
@@ -143,16 +163,18 @@
 </nav>
 {% endif %}
 
-<!-- FAQ -->
+<!-- FAQ: แสดง 5 อันดับคำถามที่พบบ่อยที่สุด (popular_faqs มาจาก view: SearchSummary ที่ผูก FAQ แล้ว เรียงตาม search_count) -->
 <div class="faq-card">
     <h4 class="faq-title">❓ คำถามที่พบบ่อย (FAQ)</h4>
     {% for item in popular_faqs %}
+    <!-- item คือ SearchSummary object, item.faq คือ Faq object ที่ผูกอยู่ -->
     <div class="faq-item">
         <strong>{{ item.faq.title }}</strong>
         <p>{{ item.faq.answer_text }}</p>
         <small class="text-muted">จำนวนการค้นหาที่เกี่ยวข้อง: {{ item.search_count }} ครั้ง</small>
     </div>
     {% empty %}
+    <!-- ถ้ายังไม่มี FAQ ไหนถูกสร้างเลย (ยังไม่ถึง threshold การค้นหาซ้ำ) -->
     <p class="text-muted mb-0">ยังไม่มีคำถามที่พบบ่อยในระบบ</p>
     {% endfor %}
 </div>

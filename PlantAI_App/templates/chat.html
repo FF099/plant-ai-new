@@ -1,3 +1,4 @@
+<!-- chat.html : หน้าแชทคุยกับ AI แนะนำต้นไม้ (render โดย view chat, ส่งข้อความจริงผ่าน JS ไปที่ chat_api) -->
 {% extends "base.html" %}
 
 {% block title %}
@@ -8,21 +9,25 @@
 {% load static %}
 <link rel="stylesheet" href="{% static 'plants/css/style_chat.css' %}">
 
-<!-- Hero Header -->
+<!-- Hero Header: หัวข้อหน้าแชท พร้อมจุดสถานะ "ออนไลน์" (เป็นแค่ตกแต่ง ไม่ได้เช็คสถานะจริง) -->
 <div class="chat-hero">
     <h5>Plant AI Chat</h5>
     <small><span class="status-dot"></span>ออนไลน์ — ถามเรื่องต้นไม้ได้เลย</small>
 </div>
 
-<!-- Chat Wrapper -->
+<!-- Chat Wrapper: กล่องแชททั้งหมด -->
 <div class="chat-wrapper">
+    <!-- กล่องแสดงข้อความสนทนา ข้อความใหม่จะถูกเพิ่มเข้ามาที่นี่ด้วย JavaScript (chat.js) -->
     <div id="chat-box">
+        <!-- ข้อความต้อนรับเริ่มต้นจากบอท (hardcode ไว้ในหน้า ไม่ได้มาจาก AI) -->
         <div class="message bot-message">
             สวัสดี! ผมคือผู้ช่วยอัจฉริยะด้านต้นไม้<br>
             บอกเงื่อนไขที่ต้องการได้เลย เช่น แสงน้อย น้ำน้อย หรือชื่อต้นไม้ที่สนใจ
         </div>
     </div>
 
+    <!-- ฟอร์มพิมพ์ข้อความด้านล่าง: ส่งด้วย JavaScript แบบ AJAX ไปที่ endpoint chat_api (ดู chat.js)
+         ไม่ได้ submit แบบ reload หน้าปกติ -->
     <div class="chat-footer">
         <form id="chat-form">
             <div class="input-wrap">
@@ -33,5 +38,6 @@
     </div>
 </div>
 
+<!-- โหลดไฟล์ JS ที่จัดการ logic การส่ง/รับข้อความแชท (fetch ไปที่ /chat/api/) -->
 <script src="{% static 'plants/js/chat.js' %}"></script>
 {% endblock %}
