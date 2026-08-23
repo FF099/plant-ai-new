@@ -58,6 +58,18 @@
         </div>
     </nav>
 
+    <!-- แสดง Django messages เป็น Bootstrap 5 alert (dismissible + auto-hide) -->
+    {% if messages %}
+    <div class="container mt-3">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show auto-alert" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
     <!-- เนื้อหาหลักของแต่ละหน้า: หน้าลูกจะเติมเนื้อหาผ่าน // block content // นี้ -->
     <div class="container py-4">
         {% block content %}
@@ -66,6 +78,14 @@
 
     <!-- โหลด Bootstrap JS bundle (รวม Popper.js) ไว้ท้ายหน้า เพื่อให้ dropdown/collapse ทำงานได้ -->
     <script src="{% static 'plants/vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+    <!-- ปิด alert อัตโนมัติหลัง 4 วินาที -->
+    <script>
+        document.querySelectorAll('.auto-alert').forEach(function (alertEl) {
+            setTimeout(function () {
+                bootstrap.Alert.getOrCreateInstance(alertEl).close();
+            }, 4000);
+        });
+    </script>
     <!-- บล็อกสำหรับให้หน้าลูกแทรก <script> เพิ่มเติมเฉพาะหน้าตัวเอง (เช่น chat.js) -->
     {% block footer %}
     {% endblock %}

@@ -5,6 +5,7 @@ from django.core.paginator import Paginator
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 from django.db.models import Q
+from django.contrib import messages
 from openai import OpenAI
 
 from .models import Admin, PlantCategory, Plant, Faq, SearchSummary, record_search
@@ -376,7 +377,10 @@ def plant_add(request):
             plant = form.save(commit=False)
             plant.admin = current_admin
             plant.save()
+            messages.success(request, f'เพิ่มพืช "{plant.plant_name}" เรียบร้อยแล้ว')
             return redirect('/management/?tab=plants')  # เสร็จแล้วกลับไปหน้ารายการพืช
+        else:
+            messages.error(request, 'กรุณาตรวจสอบข้อมูลในฟอร์มอีกครั้ง')
     else:
         form = PlantForm()  # GET request: แสดงฟอร์มเปล่าสำหรับกรอกข้อมูลใหม่
     return render(request, 'plant_form.html', {'form': form, 'title': 'เพิ่มข้อมูลพืช'})
@@ -391,7 +395,10 @@ def plant_edit(request, pk):
         form = PlantForm(request.POST, instance=plant)
         if form.is_valid():
             form.save()
+            messages.success(request, f'แก้ไขข้อมูลพืช "{plant.plant_name}" เรียบร้อยแล้ว')
             return redirect('/management/?tab=plants')
+        else:
+            messages.error(request, 'กรุณาตรวจสอบข้อมูลในฟอร์มอีกครั้ง')
     else:
         form = PlantForm(instance=plant)  # GET request: แสดงฟอร์มพร้อมข้อมูลเดิมของพืชนี้
     return render(request, 'plant_form.html', {'form': form, 'title': 'แก้ไขข้อมูลพืช'})
@@ -401,7 +408,9 @@ def plant_edit(request, pk):
 def plant_delete(request, pk):
     # ลบพืชตามรหัส pk ทันที (ไม่มีหน้ายืนยันแยกต่างหากใน view นี้)
     plant = get_object_or_404(Plant, pk=pk)
+    plant_name = plant.plant_name
     plant.delete()
+    messages.success(request, f'ลบพืช "{plant_name}" เรียบร้อยแล้ว')
     return redirect('/management/?tab=plants')
 
 
@@ -415,7 +424,10 @@ def category_add(request):
             cat = form.save(commit=False)
             cat.admin = current_admin  # ผูกหมวดหมู่กับ admin ที่สร้าง
             cat.save()
+            messages.success(request, f'เพิ่มหมวดหมู่ "{cat.category_name}" เรียบร้อยแล้ว')
             return redirect('/management/?tab=categories')
+        else:
+            messages.error(request, 'กรุณาตรวจสอบข้อมูลในฟอร์มอีกครั้ง')
     else:
         form = PlantCategoryForm()
     return render(request, 'category_form.html', {'form': form, 'title': 'เพิ่มหมวดหมู่พืช'})
@@ -428,7 +440,10 @@ def category_edit(request, pk):
         form = PlantCategoryForm(request.POST, instance=cat)
         if form.is_valid():
             form.save()
+            messages.success(request, f'แก้ไขหมวดหมู่ "{cat.category_name}" เรียบร้อยแล้ว')
             return redirect('/management/?tab=categories')
+        else:
+            messages.error(request, 'กรุณาตรวจสอบข้อมูลในฟอร์มอีกครั้ง')
     else:
         form = PlantCategoryForm(instance=cat)
     return render(request, 'category_form.html', {'form': form, 'title': 'แก้ไขหมวดหมู่พืช'})
@@ -438,7 +453,9 @@ def category_edit(request, pk):
 def category_delete(request, pk):
     # หมายเหตุ: PlantCategory ผูกกับ Plant แบบ CASCADE ดังนั้นลบ category นี้จะลบพืชในหมวดนี้ทั้งหมดไปด้วย
     cat = get_object_or_404(PlantCategory, pk=pk)
+    cat_name = cat.category_name
     cat.delete()
+    messages.success(request, f'ลบหมวดหมู่ "{cat_name}" เรียบร้อยแล้ว (พืชในหมวดนี้ถูกลบไปด้วย)')
     return redirect('/management/?tab=categories')
 
 
@@ -446,7 +463,9 @@ def category_delete(request, pk):
 def faq_delete(request, pk):
     # ลบ FAQ ตามรหัส pk (ทั้ง FAQ ที่ admin สร้างเองและที่ระบบ auto-gen ก็ลบได้ผ่าน view นี้)
     faq = get_object_or_404(Faq, pk=pk)
+    faq_title = faq.title
     faq.delete()
+    messages.success(request, f'ลบ FAQ "{faq_title}" เรียบร้อยแล้ว')
     return redirect('/management/?tab=faqs')
 
 
@@ -456,8 +475,11 @@ def admin_add(request):
     if request.method == 'POST':
         form = AdminUserForm(request.POST)
         if form.is_valid():
-            form.save()
+            admin_obj = form.save()
+            messages.success(request, f'เพิ่มผู้ดูแลระบบ "{admin_obj.username}" เรียบร้อยแล้ว')
             return redirect('/management/?tab=admins')
+        else:
+            messages.error(request, 'กรุณาตรวจสอบข้อมูลในฟอร์มอีกครั้ง')
     else:
         form = AdminUserForm()
     return render(request, 'admin_form.html', {'form': form, 'title': 'เพิ่มผู้ดูแลระบบ'})
@@ -470,7 +492,10 @@ def admin_edit(request, pk):
         form = AdminUserForm(request.POST, instance=admin_obj)
         if form.is_valid():
             form.save()
+            messages.success(request, f'แก้ไขข้อมูลผู้ดูแลระบบ "{admin_obj.username}" เรียบร้อยแล้ว')
             return redirect('/management/?tab=admins')
+        else:
+            messages.error(request, 'กรุณาตรวจสอบข้อมูลในฟอร์มอีกครั้ง')
     else:
         form = AdminUserForm(instance=admin_obj)
     return render(request, 'admin_form.html', {'form': form, 'title': 'แก้ไขข้อมูลผู้ดูแลระบบ'})

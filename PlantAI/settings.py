@@ -118,3 +118,13 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/management/'
 LOGOUT_REDIRECT_URL = '/'
+
+from django.contrib.messages import constants as messages_constants
+
+MESSAGE_TAGS = {
+    messages_constants.DEBUG: 'secondary',
+    messages_constants.INFO: 'info',
+    messages_constants.SUCCESS: 'success',
+    messages_constants.WARNING: 'warning',
+    messages_constants.ERROR: 'danger',   # Django ใช้ 'error' แต่ Bootstrap ใช้ 'alert-danger'
+}
