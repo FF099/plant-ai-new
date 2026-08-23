@@ -9,10 +9,9 @@ from .models import Plant, PlantCategory, Faq, Admin
 # ═════════════════════════════════════════════
 class PlantForm(forms.ModelForm):
     class Meta:
-        model = Plant  # ผูกฟอร์มนี้กับโมเดล Plant
-        # ระบุเฉพาะฟิลด์ที่ต้องการให้แสดงในฟอร์ม (plant_id ไม่ต้องใส่ เพราะ gen อัตโนมัติ)
+        model = Plant
         fields = ['plant_name', 'category', 'light', 'water', 'humidity', 'description']
-        # ข้อความ label ภาษาไทยที่จะแสดงหน้าแต่ละช่องกรอกในฟอร์ม
+
         labels = {
             'plant_name': 'ชื่อพืช',
             'category': 'หมวดหมู่พืช',
@@ -21,15 +20,47 @@ class PlantForm(forms.ModelForm):
             'humidity': 'ระดับความชื้น',
             'description': 'รายละเอียด',
         }
-        # กำหนด widget (element HTML) และ class CSS (Bootstrap) ให้แต่ละฟิลด์
+
         widgets = {
             'plant_name': forms.TextInput(attrs={'class': 'form-control'}),
-            'category': forms.Select(attrs={'class': 'form-select'}),  # dropdown เลือกหมวดหมู่
-            'light': forms.Select(attrs={'class': 'form-select'}),     # dropdown เลือกระดับแสง (จาก choices ใน model)
-            'water': forms.Select(attrs={'class': 'form-select'}),     # dropdown เลือกระดับน้ำ
-            'humidity': forms.Select(attrs={'class': 'form-select'}),  # dropdown เลือกระดับความชื้น
-            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),  # กล่องข้อความหลายบรรทัด
+            'category': forms.Select(attrs={'class': 'form-select'}),
+            'light': forms.Select(attrs={'class': 'form-select'}),
+            'water': forms.Select(attrs={'class': 'form-select'}),
+            'humidity': forms.Select(attrs={'class': 'form-select'}),
+            'description': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 4
+            }),
         }
+
+    def clean_plant_name(self):
+        plant_name = self.cleaned_data['plant_name'].strip()
+
+        # ตรวจว่าชื่อพืชซ้ำกับพืชหรือไม่
+        plants = Plant.objects.filter(
+            plant_name__iexact=plant_name
+        )
+
+        # ตอนแก้ไขข้อมูล ให้ไม่นับข้อมูลตัวเอง
+        if self.instance.pk:
+            plants = plants.exclude(pk=self.instance.pk)
+
+        if plants.exists():
+            raise forms.ValidationError(
+                'ชื่อพืชนี้มีอยู่ในระบบแล้ว'
+            )
+
+        # ตรวจว่าชื่อพืชซ้ำกับชื่อหมวดหมู่หรือไม่
+        categories = PlantCategory.objects.filter(
+            category_name__iexact=plant_name
+        )
+
+        if categories.exists():
+            raise forms.ValidationError(
+                'ชื่อพืชนี้ซ้ำกับชื่อหมวดหมู่พืช'
+            )
+
+        return plant_name
 
 
 # ═════════════════════════════════════════════
@@ -38,16 +69,53 @@ class PlantForm(forms.ModelForm):
 class PlantCategoryForm(forms.ModelForm):
     class Meta:
         model = PlantCategory
-        # category_id ไม่ต้องใส่เพราะ gen อัตโนมัติ, admin จะถูกกำหนดใน view ไม่ใช่จากฟอร์ม
         fields = ['category_name', 'detail']
+
         labels = {
             'category_name': 'ชื่อหมวดหมู่พืช',
             'detail': 'รายละเอียดหมวดหมู่',
         }
+
         widgets = {
-            'category_name': forms.TextInput(attrs={'class': 'form-control'}),
-            'detail': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'category_name': forms.TextInput(
+                attrs={'class': 'form-control'}
+            ),
+            'detail': forms.Textarea(
+                attrs={
+                    'class': 'form-control',
+                    'rows': 3
+                }
+            ),
         }
+
+    def clean_category_name(self):
+        category_name = self.cleaned_data['category_name'].strip()
+
+        # ตรวจว่าชื่อหมวดหมู่ซ้ำกับหมวดหมู่หรือไม่
+        categories = PlantCategory.objects.filter(
+            category_name__iexact=category_name
+        )
+
+        # ตอนแก้ไขข้อมูล ให้ไม่นับข้อมูลตัวเอง
+        if self.instance.pk:
+            categories = categories.exclude(pk=self.instance.pk)
+
+        if categories.exists():
+            raise forms.ValidationError(
+                'ชื่อหมวดหมู่นี้มีอยู่ในระบบแล้ว'
+            )
+
+        # ตรวจว่าชื่อหมวดหมู่ซ้ำกับชื่อพืชหรือไม่
+        plants = Plant.objects.filter(
+            plant_name__iexact=category_name
+        )
+
+        if plants.exists():
+            raise forms.ValidationError(
+                'ชื่อหมวดหมู่นี้ซ้ำกับชื่อพืช'
+            )
+
+        return category_name
 
 
 # ═════════════════════════════════════════════

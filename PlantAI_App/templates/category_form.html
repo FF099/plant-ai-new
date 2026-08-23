@@ -15,11 +15,20 @@
 <div class="form-card">
     <form method="post">
         {% csrf_token %}
-        <!-- render ฟิลด์ของ PlantCategoryForm อัตโนมัติ: category_name, detail -->
-        {{ form.as_p }}
+
+            {% for field in form %}
+                {% if field.errors %}
+                    <div class="alert alert-danger mb-2">
+                        {{ field.errors.0 }}
+                    </div>
+                {% endif %}
+
+                {{ field.label_tag }}
+                {{ field }}
+            {% endfor %}
+
         <div class="form-actions">
             <button type="submit" class="btn btn-plant-primary">บันทึก</button>
-            <!-- กลับไปหน้าจัดการระบบ แท็บหมวดหมู่ โดยไม่บันทึก -->
             <a href="{% url 'management' %}?tab=categories" class="btn btn-plant-secondary">ยกเลิก</a>
         </div>
     </form>

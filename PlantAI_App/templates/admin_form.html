@@ -17,14 +17,22 @@
 <div class="form-card">
     <form method="post">
         {% csrf_token %}
-        <!-- // form.as_p // จะ render ฟิลด์ทั้งหมดของ AdminUserForm อัตโนมัติ
-             (username, email, password) โดยแต่ละฟิลด์ครอบด้วย <p> ตาม widget ที่กำหนดไว้ใน forms.py -->
-        {{ form.as_p }}
+
+        {% for field in form %}
+            {% if field.errors %}
+                <div class="alert alert-danger mb-2">
+                    {{ field.errors.0 }}
+                </div>
+            {% endif %}
+
+            {{ field.label_tag }}
+            {{ field }}
+        {% endfor %}
+
         <div class="form-actions">
-            <!-- ปุ่มบันทึก: submit ฟอร์มกลับไปที่ view เดิม (admin_add หรือ admin_edit) -->
             <button type="submit" class="btn btn-plant-primary">บันทึก</button>
-            <!-- ปุ่มยกเลิก: กลับไปหน้าจัดการระบบ แท็บผู้ดูแลระบบ โดยไม่บันทึกข้อมูล -->
-            <a href="{% url 'management' %}?tab=admins" class="btn btn-plant-secondary">ยกเลิก</a>
+            <a href="{% url 'management' %}?tab=admins"
+            class="btn btn-plant-secondary">ยกเลิก</a>
         </div>
     </form>
 </div>

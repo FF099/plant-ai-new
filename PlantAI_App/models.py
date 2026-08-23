@@ -69,7 +69,7 @@ class Admin(models.Model):
 # ═════════════════════════════════════════════
 class PlantCategory(models.Model):
     category_id = models.CharField(primary_key=True, max_length=11, editable=False)  # เช่น C001
-    category_name = models.CharField(max_length=50)  # ชื่อหมวดหมู่ เช่น "ไม้เลื้อย"
+    category_name = models.CharField(max_length=50, unique=True)  # ชื่อหมวดหมู่ เช่น "ไม้เลื้อย"
     detail = models.TextField(blank=True, null=True)  # คำอธิบายหมวดหมู่ (ใส่หรือไม่ใส่ก็ได้)
     # FK ไปยัง Admin ผู้สร้างหมวดหมู่นี้ (1 admin สร้างได้หลาย category)
     # ถ้า admin ถูกลบ ให้ลบ category ที่ผูกอยู่ด้วย (CASCADE)
@@ -118,7 +118,7 @@ class Plant(models.Model):
     ]
 
     plant_id = models.CharField(primary_key=True, max_length=11, editable=False)  # เช่น P001
-    plant_name = models.CharField(max_length=50)  # ชื่อพืช
+    plant_name = models.CharField(max_length=50, unique=True)  # ชื่อพืช
 
     # ฟิลด์ choices ทั้งสามนี้ เก็บค่าเป็น string 'low'/'medium'/'high'
     # แต่จะแสดงผลเป็นภาษาไทยผ่าน get_light_display(), get_water_display(), get_humidity_display()
