@@ -460,29 +460,24 @@ def chat_with_llm(request):
     # =====================================================
     # 1. ตรวจสอบและแก้ข้อความกรณีพิมพ์สลับภาษา
     # =====================================================
+    # แปลงข้อความผิดภาษานี้ให้เป็นภาษาไทยทั้งประโยคเป็นค่าเริ่มต้นก่อน
+    fixed_input = fix_kedmanee_typo(user_input)
+    normalized_input = fixed_input
 
-    normalized_input = user_input
-
+    # หากพบชื่อต้นไม้เจาะจง ให้ใช้ชื่อมาตรฐานจาก DB
     matched_plant_names = match_plant_names(user_input)
-
     if matched_plant_names:
-        # ใช้ชื่อพืชจริงจากฐานข้อมูล
-        normalized_input = " ".join(
-            sorted(matched_plant_names)
-        )
+        normalized_input = " ".join(sorted(matched_plant_names))
 
     try:
-
         # =====================================================
         # 2. ค้นหาข้อมูลพืชจากฐานข้อมูล
         # =====================================================
-
-        context_data = get_plant_context(normalized_input)
+        context_data = get_plant_context(fixed_input)
 
         # =====================================================
         # 3. ส่งข้อมูลให้ OpenAI
         # =====================================================
-
         completion = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
@@ -519,7 +514,6 @@ def chat_with_llm(request):
 ให้ตอบรับสุภาพและบอกว่าพร้อมแนะนำต้นไม้จากฐานข้อมูล
 """
                 },
-
                 {
                     "role": "user",
                     "content": normalized_input
@@ -531,16 +525,13 @@ def chat_with_llm(request):
         # =====================================================
         # 4. ส่งผลกลับไปยังหน้าเว็บ
         # =====================================================
-
         return JsonResponse({
             'reply': completion.choices[0].message.content,
             'normalized_message': normalized_input
         })
 
     except Exception as e:
-
         print(f"Error: {e}")
-
         return JsonResponse({
             'reply': 'ขออภัยครับ ระบบประมวลผลขัดข้อง',
             'normalized_message': normalized_input
