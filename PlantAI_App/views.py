@@ -52,6 +52,173 @@ CATEGORY_SYNONYMS = {
 
 
 # ─────────────────────────────────────────────
+#  1.1 PLANT_SYNONYMS — คำพ้อง/ชื่อเรียกอื่น/ชื่อย่อ/สะกดผิด/ชื่ออังกฤษของพืชแต่ละต้น
+#      key   = ชื่อพืชตรงตัวใน DB (plant_name)
+#      value = list คำที่ผู้ใช้อาจพิมพ์แทน (อย่างน้อย 1 ชื่อเป็นภาษาอังกฤษ/วิทยาศาสตร์)
+#
+#      ⚠️ หมายเหตุ: ชื่ออังกฤษ/วิทยาศาสตร์ของพืชไทยพื้นบ้านบางต้น (เช่น กลุ่ม
+#      "ว่านเสน่ห์จันทร์", "พลูฉลุ/พลูฉีก/พลูสนิม", "ออมเงิน/ออมทอง") ไม่มีมาตรฐานตายตัว
+#      ใส่ชื่อที่ใกล้เคียงที่สุดเท่าที่หาข้อมูลได้ ควรตรวจสอบซ้ำก่อนใช้งานจริง
+# ─────────────────────────────────────────────
+PLANT_SYNONYMS = {
+    "เล็บครุฑใบกุหลาบ": ["เล็บครุฑกุหลาบ", "อาราเลียใบกุหลาบ", "ming aralia", "aralia"],
+    "เล็บครุฑใบเฟิร์น": ["เล็บครุฑเฟิร์น", "เล็บครุฑใบชวน", "fern leaf aralia", "fern aralia"],
+    "เล็บครุฑบริพัตร": ["เล็บครุฑบริพันธ์", "บริพัตร", "balfour aralia"],
+    "เล็บครุฑฝอย": ["เล็บครุฑใบฝอย", "thread leaf aralia", "parsley aralia"],
+    "บอนสี": ["บอน", "บอนใบสี", "caladium", "heart of jesus"],
+    "ออมเงินกำมะหยี่": ["ต้นออมเงินกำมะหยี่", "กำมะหยี่ออมเงิน", "satin pothos", "silver pothos"],
+    "ออมทอง": ["ต้นออมทอง", "golden satin pothos"],
+    "ว่านเสน่ห์จันทร์แดง": ["เสน่ห์จันทร์แดง", "ว่านเสน่ห์จันทน์แดง", "aglaonema red", "chinese evergreen แดง"],
+    "ว่านเสน่ห์จันทร์เขียว": ["เสน่ห์จันทร์เขียว", "ว่านเสน่ห์จันทน์เขียว", "aglaonema green", "chinese evergreen เขียว"],
+    "ว่านเสน่ห์จันทร์ขาว": ["เสน่ห์จันทร์ขาว", "ว่านเสน่ห์จันทน์ขาว", "aglaonema white", "chinese evergreen ขาว"],
+    "พลูฉลุ": ["พลูฉลุลาย", "monstera adansonii", "swiss cheese vine"],
+    "พลูฉีก": ["พลูใบฉีก", "split leaf philodendron"],
+    "พลูสนิม": ["พลูใบสนิม", "rusty pothos"],
+    "ฟิโลเดนดรอน": ["ฟิโล", "philodendron"],
+    "ลิ้นมังกร": ["ลิ้นมังกรใบ", "snake plant tongue", "gasteria"],
+    "เดหลี": ["เดหลี่", "ดีหลี", "peace lily", "spathiphyllum"],
+    "เขียวหมื่นปี": ["ต้นเขียวหมื่นปี", "chinese evergreen", "aglaonema"],
+    "สาวน้อยประแป้ง": ["สาวน้อยแป้งประ", "dumb cane", "dieffenbachia"],
+    "หมากผู้หมากเมีย": ["หมากผู้-หมากเมีย", "rhoeo", "moses in the cradle", "tradescantia spathacea"],
+    "วาสนา": ["ต้นวาสนา", "dracaena", "lucky plant"],
+    "หมากแดง": ["ปาล์มหมากแดง", "red sealing wax palm", "lipstick palm"],
+    "เฟิร์นหางปลา": ["fishtail fern", "fish tail fern"],
+    "เฟิร์นใบบะขาม (เฟิร์นใบมะขาม)": ["เฟิร์นใบบะขาม", "เฟิร์นใบมะขาม", "เฟิร์นมะขาม", "tamarind leaf fern"],
+    "คล้าม้าลาย": ["ม้าลาย", "zebra plant", "calathea zebrina"],
+    "กาเหว่าลาย": ["กาเหว่า", "croton variegated", "codiaeum กาเหว่า"],
+    "ว่านเศรษฐีขอดทรัพย์": ["เศรษฐีขอดทรัพย์", "money plant ขอดทรัพย์"],
+    "ว่านเศรษฐีเรือนกลาง": ["เศรษฐีเรือนกลาง", "money plant เรือนกลาง"],
+    "ว่านเศรษฐีเรือนนอก": ["เศรษฐีเรือนนอก", "money plant เรือนนอก"],
+    "ว่านเศรษฐีเรือนใน": ["เศรษฐีเรือนใน", "money plant เรือนใน"],
+    "กวนอิม": ["ต้นกวนอิม", "guanyin plant", "homalomena"],
+    "หวายเขียว": ["green rattan", "หวายลาย"],
+    "ไผ่ฟิลิปปินส์": ["ไผ่ฟิลิปปิน", "philippine bamboo", "golden bamboo"],
+    "แอฟริกัน ไวโอเล็ต": ["แอฟริกันไวโอเล็ต", "ไวโอเล็ต", "african violet", "saintpaulia"],
+    "พรมญี่ปุ่น": ["หญ้าพรมญี่ปุ่น", "japanese carpet grass", "zoysia"],
+    "เฟิร์นนาคราช": ["นาคราช", "king fern", "blue star fern"],
+    "กุหลาบหิน": ["kalanchoe", "stone rose", "flaming katy"],
+    "ก้ามปูหลุด": ["ก้ามปู", "rhipsalis", "mistletoe cactus"],
+    "แคัคตัส (แคคตัส)": ["แคคตัส", "แคกตัส", "แคกทัส", "กระบองเพชร", "cactus"],
+    "สัปปะรดสี (สับปะรดสี)": ["สัปปะรดสี", "สับปะรดสี", "สัปรดสี", "bromeliad"],
+    "เฟิร์นข้าหลวง": ["ข้าหลวง", "bird's nest fern", "asplenium"],
+    "เฟิร์นก้านดำ": ["ก้านดำ", "maidenhair fern", "adiantum"],
+    "โกสน": ["ต้นโกสน", "croton", "codiaeum"],
+    "ไทรย้อยใบแหลม": ["ไทรย้อย", "weeping fig", "ficus benjamina"],
+    "เกล็ดมังกร": ["dragon scale", "alocasia baginda"],
+    "ซ้อนเงินซ้อนทอง": ["ซ้อนเงินซ้อนคำ", "aglaonema pictum"],
+    "เงินไหลมา": ["money coming plant", "aglaonema commutatum"],
+    "ปาล์มไผ่": ["bamboo palm", "chamaedorea"],
+    "หน้าวัว": ["anthurium", "flamingo flower"],
+    "บีโกเนีย": ["begonia"],
+    "ริบบิ้นชาลี": ["ริบบิ้น", "spider plant", "chlorophytum"],
+    "คล้าขุนแผน": ["ขุนแผน", "calathea ornata", "pinstripe calathea"],
+    "เฟิร์นบอสตัน": ["boston fern", "nephrolepis"],
+    "ซานาดู": ["xanadu", "philodendron xanadu"],
+    "พลูด่าง": ["pothos", "devil's ivy", "epipremnum aureum"],
+    "กวักมรกต": ["มรกต", "zz plant", "zamioculcas"],
+    "ไทรใบสัก": ["fiddle leaf fig", "ficus lyrata"],
+    "ยางอินเดีย": ["rubber plant", "ficus elastica"],
+    "มอนสเตอร่า": ["ม่อนสเตอร่า", "monstera", "monstera deliciosa", "swiss cheese plant"],
+    "เปปเปอร์โรเมีย": ["เปปเปอโรเมีย", "peperomia"],
+    "เฟิร์นเงิน": ["silver fern", "pteris"],
+    "จั๋ง": ["จัง", "rhapis", "lady palm"],
+    "หมากเหลือง": ["golden cane palm", "areca palm", "dypsis lutescens"],
+    "พวงไข่มุก": ["ไข่มุก", "string of pearls", "senecio rowleyanus"],
+    "ว่านหางจระเข้": ["หางจระเข้", "ว่านหางจรเข้", "aloe vera"],
+    "บันไดเศรษฐี": ["money ladder plant", "pedilanthus"],
+    "บัวดอย": ["ดอกบัวดอย", "rhododendron ดอย", "vireya"],
+    "ทิลแลนเซีย": ["ทิลแลนด์เซีย", "tillandsia", "air plant"],
+    "โฮย่า": ["hoya", "wax plant"],
+    "ปริกหางกระรอก": ["หางกระรอก", "squirrel tail orchid", "dendrobium"],
+    "เข็มริมแดง": ["red edge ixora", "ixora"],
+}
+
+
+# ─────────────────────────────────────────────
+#  1.2 รองรับกรณี "พิมพ์สลับภาษา" (ลืมสลับคีย์บอร์ด EN/TH)
+#      ผู้ใช้ตั้งใจพิมพ์ไทย แต่คีย์บอร์ดอยู่โหมดอังกฤษ -> ได้ตัวอักษรละตินที่ไม่มีความหมาย
+#      เช่น "โกสน" (กดตำแหน่งปุ่มจริง) -> ออกมาเป็น "Fdlo" บนคีย์บอร์ด EN
+#      เรา map ตำแหน่งปุ่มกลับเป็นภาษาไทยตามผัง Kedmanee (ผังมาตรฐานของไทย)
+# ─────────────────────────────────────────────
+KEDMANEE_UNSHIFTED = {
+    'q': 'ๆ', 'w': 'ไ', 'e': 'ำ', 'r': 'พ', 't': 'ะ', 'y': 'ั', 'u': 'ี', 'i': 'ร', 'o': 'น', 'p': 'ย',
+    '[': 'บ', ']': 'ล', '\\': 'ฃ',
+    'a': 'ฟ', 's': 'ห', 'd': 'ก', 'f': 'ด', 'g': 'เ', 'h': '้', 'j': '่', 'k': 'า', 'l': 'ส', ';': 'ว', "'": 'ง',
+    'z': 'ผ', 'x': 'ป', 'c': 'แ', 'v': 'อ', 'b': 'ิ', 'n': 'ื', 'm': 'ท', ',': 'ม', '.': 'ใ', '/': 'ฝ',
+}
+KEDMANEE_SHIFTED = {
+    'Q': '๐', 'W': '"', 'E': 'ฎ', 'R': 'ฑ', 'T': 'ธ', 'Y': 'ํ', 'U': '๊', 'I': 'ณ', 'O': 'ฯ', 'P': 'ญ',
+    '{': 'ฐ', '}': ',',
+    'A': 'ฤ', 'S': 'ฆ', 'D': 'ฏ', 'F': 'โ', 'G': 'ฌ', 'H': '็', 'J': '๋', 'K': 'ษ', 'L': 'ศ', ':': 'ซ', '"': '.',
+    'Z': '(', 'X': ')', 'C': 'ฉ', 'V': 'ฮ', 'B': 'ฺ', 'N': '์', 'M': '?', '<': 'ฒ', '>': 'ฬ', '?': 'ฦ',
+}
+_KEDMANEE_MAP = {**KEDMANEE_UNSHIFTED, **KEDMANEE_SHIFTED}
+
+
+def fix_kedmanee_typo(text: str) -> str:
+    """
+    แปลงข้อความที่พิมพ์ผิดภาษา (ตั้งใจพิมพ์ไทยแต่ลืมสลับเป็นคีย์บอร์ด EN)
+    กลับเป็นข้อความไทยที่ตั้งใจพิมพ์จริง โดย map ตามตำแหน่งปุ่ม Kedmanee
+    เช่น fix_kedmanee_typo("Fdlo") -> "โกสน"
+    ตัวอักษรที่ไม่อยู่ใน mapping (เช่น เป็นภาษาไทยอยู่แล้ว ตัวเลข ช่องว่าง) จะคงค่าเดิม
+    """
+    return ''.join(_KEDMANEE_MAP.get(ch, ch) for ch in text)
+
+
+def _clean(text: str) -> str:
+    """ลบช่องว่าง/ไม้ยมก + lower-case (ใช้เทียบคำแบบไม่สนตัวพิมพ์เล็ก/ใหญ่ ไม่สนช่องว่าง)"""
+    return re.sub(r'[\sๆ]', '', text.lower())
+
+
+def build_search_variants(user_input: str):
+    """
+    สร้างข้อความหลายเวอร์ชันไว้ใช้ค้นหา เรียงตามลำดับความสำคัญ:
+      1. ข้อความต้นฉบับ (ปกติ)
+      2. ข้อความที่ 'แก้พิมพ์ผิดภาษา' แบบคีย์บอร์ด Kedmanee
+         (จะเพิ่มเข้ามาเฉพาะเมื่อแปลงแล้วได้ผลลัพธ์ต่างจากต้นฉบับ)
+    คืนค่าเป็น list ของ (lower_text, clean_text)
+    """
+    variants = []
+
+    original_lower = user_input.lower()
+    variants.append((original_lower, _clean(original_lower)))
+
+    fixed = fix_kedmanee_typo(user_input)
+    if fixed != user_input:
+        fixed_lower = fixed.lower()
+        variants.append((fixed_lower, _clean(fixed_lower)))
+
+    return variants
+
+
+# reverse-lookup: alias(clean) -> canonical plant_name
+# สร้างครั้งเดียวตอน import, เรียงยาว->สั้น กัน alias สั้นแย่ง match ก่อน alias ที่เจาะจงกว่า
+_PLANT_ALIAS_LOOKUP = []
+for _canonical_name, _aliases in PLANT_SYNONYMS.items():
+    _all_terms = set(_aliases) | {_canonical_name}
+    for _term in _all_terms:
+        _PLANT_ALIAS_LOOKUP.append((_clean(_term), _canonical_name))
+_PLANT_ALIAS_LOOKUP.sort(key=lambda pair: len(pair[0]), reverse=True)
+
+
+def match_plant_names(user_input: str):
+    """
+    ตรวจว่าข้อความผู้ใช้มีชื่อพืช/คำพ้อง/ชื่ออังกฤษของพืชตัวไหนบ้าง
+    รองรับทั้งข้อความปกติ และข้อความที่พิมพ์ผิดภาษา (คีย์บอร์ด EN/TH สลับกัน)
+    คืนค่าเป็น set ของชื่อพืชจริง (canonical, ตรงกับ plant_name ใน DB)
+    """
+    matched = set()
+    for _lower, clean_text in build_search_variants(user_input):
+        for alias_clean, canonical_name in _PLANT_ALIAS_LOOKUP:
+            if len(alias_clean) >= 2 and alias_clean in clean_text:
+                matched.add(canonical_name)
+        if matched:
+            # เจอจาก variant นี้แล้ว ไม่ต้องลอง variant ถัดไป (variant แรกมาก่อนเสมอ)
+            break
+    return matched
+
+
+# ─────────────────────────────────────────────
 #  2. Custom Decorator สำหรับตรวจสอบการเข้าสู่ระบบผู้ดูแลระบบ
 #     ใช้ครอบ (decorate) view ที่ต้องการให้เข้าถึงได้เฉพาะ admin ที่ login แล้วเท่านั้น
 # ─────────────────────────────────────────────
@@ -67,16 +234,36 @@ def admin_required(view_func):
 
 
 # ─────────────────────────────────────────────
-#  2. RAG — ค้นหาข้อมูลพืชจาก DB ตามคำถามผู้ใช้
+#  3. RAG — ค้นหาข้อมูลพืชจาก DB ตามคำถามผู้ใช้
 #     (RAG = Retrieval-Augmented Generation คือดึงข้อมูลจริงจาก DB มาป้อนให้ AI ใช้ตอบ
 #      แทนที่จะให้ AI ตอบจากความรู้ที่มันมีเอง เพื่อป้องกันการตอบมั่ว/หลอน (hallucination))
+#
+#      ปรับปรุงจากเดิม: เพิ่มขั้นตอน D0 ตรวจชื่อพืชเจาะจงก่อน (ผ่าน PLANT_SYNONYMS)
+#      และทุกขั้นตอน A-D ตรวจกับทั้งข้อความต้นฉบับ + ข้อความที่แก้พิมพ์ผิดภาษาแล้ว
 # ─────────────────────────────────────────────
 def get_plant_context(user_input):
     # ดึงพืชทั้งหมดพร้อม join ตาราง category ไว้ล่วงหน้า (select_related) เพื่อลดจำนวน query ตอน loop
     plants = Plant.objects.select_related('category').all()
-    user_input_lower = user_input.lower()  # แปลงข้อความผู้ใช้เป็นตัวพิมพ์เล็กทั้งหมด (กันกรณีพิมพ์ปนอังกฤษตัวใหญ่)
-    # ลบช่องว่างและตัว 'ๆ' (ไม้ยมก) ออกจากข้อความ เพื่อให้เทียบคำได้แม่นยำขึ้น เช่น "ล้ม ลุก" กับ "ล้มลุก"
-    user_input_clean = re.sub(r'[\sๆ]', '', user_input_lower)
+
+    # สร้างข้อความหลายเวอร์ชันไว้เทียบ (ต้นฉบับ + เวอร์ชันแก้พิมพ์ผิดภาษาคีย์บอร์ด ถ้ามี)
+    variants = build_search_variants(user_input)  # [(lower_text, clean_text), ...]
+
+    # ── D0: ตรวจหาชื่อพืชเจาะจงก่อนเป็นอันดับแรก (สำคัญสุด) ──
+    matched_plant_names = match_plant_names(user_input)
+    if matched_plant_names:
+        target_plants = plants.filter(plant_name__in=matched_plant_names).distinct()
+        if target_plants.exists():
+            context = "รายการต้นไม้ที่ค้นพบในระบบ (ค้นหาแบบระบุชื่อพืชโดยตรง):\n"
+            for p in target_plants:
+                context += f"""
+- ชื่อ: {p.plant_name}
+  หมวดหมู่: {p.category.category_name}
+  แสง: {p.get_light_display()} | น้ำ: {p.get_water_display()} | ความชื้น: {p.get_humidity_display()}
+  รายละเอียด: {p.description or "-"}
+-------------------
+"""
+            return context
+        # ถ้า filter ไม่เจอ (เช่นข้อมูลถูกลบไปแล้ว) ให้ตกไปทำ logic เดิมต่อด้านล่าง
 
     attr_query = Q()  # ตัวเก็บเงื่อนไข query ที่จะค่อยๆ AND (&) เพิ่มเข้าไปตามคุณสมบัติที่ตรวจเจอ
     has_attr = False  # flag บอกว่ามีการตรวจเจอคุณสมบัติ (แสง/น้ำ/ความชื้น/หมวดหมู่) อย่างน้อย 1 อย่างหรือไม่
@@ -87,9 +274,16 @@ def get_plant_context(user_input):
     selected_humidity = None
     selected_category_obj = None
 
+    def any_variant_has(keywords):
+        """เช็คว่ามี keyword ใดปรากฏใน variant ไหนก็ได้ (ต้นฉบับ หรือแก้พิมพ์ผิดภาษาแล้ว)"""
+        for lower_text, _clean_text in variants:
+            if any(kw in lower_text for kw in keywords):
+                return True
+        return False
+
     # A. ตรวจหาแสง — วนดูทีละระดับ (low/medium/high) ว่ามีคำใน keywords ปรากฏในข้อความผู้ใช้หรือไม่
     for db_val, keywords in LIGHT_MAP.items():
-        if any(kw in user_input_lower for kw in keywords):
+        if any_variant_has(keywords):
             attr_query &= Q(light=db_val)  # เพิ่มเงื่อนไข filter(light=db_val) เข้าไปใน query
             selected_light = db_val
             has_attr = True
@@ -97,7 +291,7 @@ def get_plant_context(user_input):
 
     # B. ตรวจหาน้ำ (ตรรกะเดียวกับ A แต่ใช้ WATER_MAP)
     for db_val, keywords in WATER_MAP.items():
-        if any(kw in user_input_lower for kw in keywords):
+        if any_variant_has(keywords):
             attr_query &= Q(water=db_val)
             selected_water = db_val
             has_attr = True
@@ -105,7 +299,7 @@ def get_plant_context(user_input):
 
     # C. ตรวจหาความชื้น (ตรรกะเดียวกับ A แต่ใช้ HUMIDITY_MAP)
     for db_val, keywords in HUMIDITY_MAP.items():
-        if any(kw in user_input_lower for kw in keywords):
+        if any_variant_has(keywords):
             attr_query &= Q(humidity=db_val)
             selected_humidity = db_val
             has_attr = True
@@ -118,20 +312,21 @@ def get_plant_context(user_input):
     for cat in db_categories:
         if not cat.category_name:
             continue  # ข้ามหมวดหมู่ที่ไม่มีชื่อ (กันข้อมูลผิดปกติ)
-        # ลบช่องว่าง/ไม้ยมกออกจากชื่อหมวดหมู่ เพื่อเทียบกับ user_input_clean ได้ตรงกัน
-        cat_name_clean = re.sub(r'[\sๆ]', '', cat.category_name.lower())
+        # ลบช่องว่าง/ไม้ยมกออกจากชื่อหมวดหมู่ เพื่อเทียบกับ clean_text ได้ตรงกัน
+        cat_name_clean = _clean(cat.category_name)
 
-        # เทียบตรงๆ: ถ้าชื่อหมวดหมู่ (ที่ตัดช่องว่างแล้ว) ยาวอย่างน้อย 2 ตัวอักษร และปรากฏอยู่ในข้อความผู้ใช้
-        if len(cat_name_clean) >= 2 and cat_name_clean in user_input_clean:
-            matched_category_ids.add(cat.category_id)
-            selected_category_obj = cat
-
-        # เทียบผ่านคำพ้อง: ถ้าชื่อหมวดหมู่มีคำ key ใน CATEGORY_SYNONYMS ปรากฏอยู่
-        # และข้อความผู้ใช้มีคำพ้อง (syn_words) คำใดคำหนึ่งของ key นั้น ก็ถือว่าตรงกันด้วย
-        for syn_key, syn_words in CATEGORY_SYNONYMS.items():
-            if syn_key in cat_name_clean and any(sw in user_input_lower for sw in syn_words):
+        for lower_text, clean_text in variants:
+            # เทียบตรงๆ: ถ้าชื่อหมวดหมู่ (ที่ตัดช่องว่างแล้ว) ยาวอย่างน้อย 2 ตัวอักษร และปรากฏอยู่ในข้อความผู้ใช้
+            if len(cat_name_clean) >= 2 and cat_name_clean in clean_text:
                 matched_category_ids.add(cat.category_id)
                 selected_category_obj = cat
+
+            # เทียบผ่านคำพ้อง: ถ้าชื่อหมวดหมู่มีคำ key ใน CATEGORY_SYNONYMS ปรากฏอยู่
+            # และข้อความผู้ใช้มีคำพ้อง (syn_words) คำใดคำหนึ่งของ key นั้น ก็ถือว่าตรงกันด้วย
+            for syn_key, syn_words in CATEGORY_SYNONYMS.items():
+                if syn_key in cat_name_clean and any(sw in lower_text for sw in syn_words):
+                    matched_category_ids.add(cat.category_id)
+                    selected_category_obj = cat
 
     if matched_category_ids:
         # ถ้าเจอหมวดหมู่ที่ตรง ให้เพิ่มเงื่อนไข category_id อยู่ใน list ที่เจอ (อาจมากกว่า 1 หมวด)
@@ -155,14 +350,10 @@ def get_plant_context(user_input):
         # กรองพืชด้วยเงื่อนไขทั้งหมดที่สะสมไว้ + distinct() กันข้อมูลซ้ำจากการ join
         target_plants = plants.filter(attr_query).distinct()
     else:
-        # ถ้าไม่เจอคุณสมบัติที่กำหนดไว้เลย ให้ fallback ไปค้นหาแบบข้อความอิสระ (free text search)
-        # โดยเทียบกับชื่อพืช, รายละเอียด, หรือชื่อหมวดหมู่ ว่ามีคำที่ผู้ใช้พิมพ์ปรากฏอยู่หรือไม่ (icontains)
-        text_search = (
-            Q(plant_name__icontains=user_input) |
-            Q(description__icontains=user_input) |
-            Q(category__category_name__icontains=user_input)
-        )
-        target_plants = plants.filter(text_search).distinct()
+        # ถ้าไม่พบคุณสมบัติที่กำหนดไว้
+        # ให้ดึงข้อมูลพืชจากฐานข้อมูลมาให้ LLM พิจารณาเอง
+        # โดย LLM จะเลือกจากข้อมูล RAG ที่ได้รับเท่านั้น
+        target_plants = plants.all()
 
     if not target_plants.exists():
         # ถ้าไม่พบพืชที่ตรงเงื่อนไขเลย ส่งข้อความแจ้งกลับไปเป็น context (ให้ AI เอาไปใช้ตอบ)
@@ -254,26 +445,48 @@ def chat(request):
     return render(request, "chat.html")
 
 
-@csrf_exempt  # ปิดการตรวจสอบ CSRF token สำหรับ endpoint นี้ (เพราะเรียกผ่าน JS/AJAX)
+@csrf_exempt
 def chat_with_llm(request):
-    # endpoint รับข้อความจากผู้ใช้ (ผ่าน AJAX POST) แล้วส่งให้ LLM ตอบกลับ พร้อมข้อมูลอ้างอิงจาก DB
-    if request.method != 'POST':
-        # อนุญาตเฉพาะ POST เท่านั้น ถ้าเรียกด้วย method อื่นให้ตอบ error 405
-        return JsonResponse({'reply': 'Method not allowed'}, status=405)
+    # endpoint รับข้อความจากผู้ใช้
+    # แล้วส่งให้ LLM พร้อมข้อมูลอ้างอิงจาก DB
 
-    user_input = request.POST.get('message', '')  # ข้อความที่ผู้ใช้พิมพ์มาจากฟอร์ม/AJAX
+    if request.method != 'POST':
+        return JsonResponse({
+            'reply': 'Method not allowed'
+        }, status=405)
+
+    user_input = request.POST.get('message', '').strip()
+
+    # =====================================================
+    # 1. ตรวจสอบและแก้ข้อความกรณีพิมพ์สลับภาษา
+    # =====================================================
+
+    normalized_input = user_input
+
+    matched_plant_names = match_plant_names(user_input)
+
+    if matched_plant_names:
+        # ใช้ชื่อพืชจริงจากฐานข้อมูล
+        normalized_input = " ".join(
+            sorted(matched_plant_names)
+        )
 
     try:
-        # ดึงข้อมูลพืชที่เกี่ยวข้องจาก DB มาเป็น context (RAG) ก่อนส่งให้ AI
-        context_data = get_plant_context(user_input)
 
-        # เรียก OpenAI Chat Completion API เพื่อให้ AI ประมวลผลและตอบกลับ
+        # =====================================================
+        # 2. ค้นหาข้อมูลพืชจากฐานข้อมูล
+        # =====================================================
+
+        context_data = get_plant_context(normalized_input)
+
+        # =====================================================
+        # 3. ส่งข้อมูลให้ OpenAI
+        # =====================================================
+
         completion = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
                 {
-                    # system prompt: กำหนดบทบาทและกฎเหล็กให้ AI ปฏิบัติตาม
-                    # โดยฝังข้อมูลพืชจริงจาก context_data เข้าไปด้วย เพื่อบังคับให้ AI ตอบจากข้อมูลจริงเท่านั้น
                     "role": "system",
                     "content": f"""
 คุณคือผู้ช่วยแนะนำต้นไม้ ตอบภาษาไทยอย่างเป็นกันเองและกระชับ
@@ -282,31 +495,56 @@ def chat_with_llm(request):
 {context_data}
 
 [กฎเหล็กในการตอบคำถาม - ต้องปฏิบัติตามอย่างเคร่งครัด]:
-1. **ใช้อ้างอิงจากฐานข้อมูลเท่านั้น**: ห้ามคิดชื่อต้นไม้เอง ห้ามใช้ความรู้ภายนอกเด็ดขาด! ให้ใช้เฉพาะรายชื่อต้นไม้ที่ปรากฏอยู่ใน [ข้อมูลอ้างอิงจากฐานข้อมูล] ด้านบนเท่านั้น
 
-2. **กรณีไม่พบข้อมูล**: หากข้อมูลอ้างอิงระบุว่า "ไม่พบข้อมูลต้นไม้..." ให้ตอบว่า:
-   "ขออภัยครับ ไม่พบข้อมูลต้นไม้ที่ตรงตามเงื่อนไขในระบบครับ"
+1. **ใช้อ้างอิงจากฐานข้อมูลเท่านั้น**
+ห้ามคิดชื่อต้นไม้เอง ห้ามใช้ความรู้ภายนอกเด็ดขาด!
+ให้ใช้เฉพาะรายชื่อต้นไม้ที่ปรากฏอยู่ใน
+[ข้อมูลอ้างอิงจากฐานข้อมูล] ด้านบนเท่านั้น
 
-3. **กรณีพบข้อมูลต้นไม้**:
-   - หากผู้ใช้พิมพ์ค้นหาด้วยคุณสมบัติ/หมวดหมู่สั้นๆ (เช่น "แสงน้อย", "น้ำปานกลาง", "ไม้ล้มลุก") ให้แสดงรายชื่อต้นไม้ที่มีในข้อมูลอ้างอิงออกมาเป็นข้อๆ (1., 2., 3., ...) โดยดึงชื่อจาก DB มาตรงๆ
-   - หากผู้ใช้ขอคำแนะนำหรือระบุสถานที่ ให้เลือกต้นไม้จากข้อมูลอ้างอิงมา 1-2 ต้นพร้อมอธิบายสั้นๆ
+2. **กรณีไม่พบข้อมูล**
+หากข้อมูลอ้างอิงระบุว่า
+"ไม่พบข้อมูลต้นไม้..."
+ให้ตอบว่า:
 
-4. **กรณีคำทักทาย**: หากพิมพ์แค่คำทักทาย ให้ตอบรับสุภาพและบอกว่าพร้อมแนะนำต้นไม้จากฐานข้อมูล
+"ขออภัยครับ ไม่พบข้อมูลต้นไม้ที่ตรงตามเงื่อนไขในระบบครับ"
+
+3. **กรณีพบข้อมูลต้นไม้**
+- หากผู้ใช้พิมพ์ค้นหาด้วยคุณสมบัติ/หมวดหมู่ เช่น "แสงน้อย", "น้ำปานกลาง", "น้ำน้อย", "ไม้ล้มลุก" ให้แสดงรายชื่อต้นไม้จากข้อมูลอ้างอิงให้ครบทุกต้นที่มีอยู่ ห้ามตัดรายชื่อออก และห้ามเพิ่มต้นไม้ที่ไม่มีในข้อมูลอ้างอิง โดยดึงชื่อจาก DB มาตรงๆ
+- หากข้อมูลอ้างอิงมีหลายรายการ ให้แสดงทุกรายการตามข้อมูลอ้างอิง ไม่จำกัดจำนวนรายการ
+
+- หากผู้ใช้ขอคำแนะนำ เช่น "ปลูกง่าย", "ดูแลง่าย", "เหมาะกับมือใหม่" หรือคำถามลักษณะใกล้เคียง ให้พิจารณาจากข้อมูลต้นไม้ทั้งหมดที่ได้รับจากฐานข้อมูล แล้วเลือกต้นไม้ที่เหมาะสม 1 ต้น โดยห้ามสร้างต้นไม้ที่ไม่มีอยู่ในข้อมูลอ้างอิง
+
+4. **กรณีคำทักทาย**
+หากพิมพ์แค่คำทักทาย
+ให้ตอบรับสุภาพและบอกว่าพร้อมแนะนำต้นไม้จากฐานข้อมูล
 """
                 },
-                {"role": "user", "content": user_input},  # ข้อความจริงที่ผู้ใช้พิมพ์
+
+                {
+                    "role": "user",
+                    "content": normalized_input
+                },
             ],
-            temperature=0.2,  # ปรับ temperature ให้ต่ำลงเพื่อป้องกันโมเดลแต่งคำตอบเอง
+            temperature=0.2,
         )
 
-        # ส่งคำตอบของ AI กลับไปเป็น JSON ให้ฝั่ง frontend (JS) เอาไปแสดงผล
-        return JsonResponse({'reply': completion.choices[0].message.content})
+        # =====================================================
+        # 4. ส่งผลกลับไปยังหน้าเว็บ
+        # =====================================================
+
+        return JsonResponse({
+            'reply': completion.choices[0].message.content,
+            'normalized_message': normalized_input
+        })
 
     except Exception as e:
-        # ถ้าเกิด error ระหว่างเรียก AI หรือประมวลผล ให้ log error ไว้ใน console
-        # และตอบข้อความ error ที่เป็นมิตรกลับไปแทน (ไม่ให้หน้าเว็บพัง)
+
         print(f"Error: {e}")
-        return JsonResponse({'reply': 'ขออภัยครับ ระบบประมวลผลขัดข้อง'}, status=500)
+
+        return JsonResponse({
+            'reply': 'ขออภัยครับ ระบบประมวลผลขัดข้อง',
+            'normalized_message': normalized_input
+        }, status=500)
 
 
 # ─────────────────────────────────────────────
