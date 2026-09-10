@@ -5,16 +5,23 @@ import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Load environment variables from .env file
+# Load environment variables from .env file (สำหรับตอนรันบนเครื่องตัวเองเท่านั้น
+# บน Railway ค่าจะมาจาก Variables ในหน้าเว็บโดยตรง ไม่ใช้ไฟล์ .env)
 load_dotenv(BASE_DIR / '.env')
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-$8(&j6qml#gaed^hu_%sebbc*&%v8p@*#7)+huo^%6sw7_=g9k')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = []
+# บน Railway ให้ตั้ง ALLOWED_HOSTS ใน Variables เป็นโดเมนจริง เช่น
+# xxx.up.railway.app (คั่นด้วย comma ถ้ามีหลายโดเมน)
+_allowed_hosts_env = os.getenv('ALLOWED_HOSTS', '')
+ALLOWED_HOSTS = [h.strip() for h in _allowed_hosts_env.split(',') if h.strip()]
+if not ALLOWED_HOSTS:
+    # fallback เผื่อยังไม่ได้ตั้งค่า env — ครอบคลุมโดเมน Railway ทุกแบบ
+    ALLOWED_HOSTS = ['.railway.app', 'localhost', '127.0.0.1']
 
 # OpenAI API Key
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
@@ -33,6 +40,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -107,6 +115,14 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
+# โฟลเดอร์ปลายทางที่ collectstatic จะรวมไฟล์ static ทั้งหมดไปไว้ (Railway/production ใช้ตัวนี้)
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+# ให้ whitenoise บีบอัดและ cache ไฟล์ static ให้อัตโนมัติ
+STORAGES = {
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
 
 # Default primary key field type
 
