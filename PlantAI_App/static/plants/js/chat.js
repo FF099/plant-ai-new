@@ -20,6 +20,10 @@ function appendMessage(sender, text) {
     chatBox.appendChild(messageDiv);
 
     chatBox.scrollTop = chatBox.scrollHeight;
+
+    // คืนค่า element กลับไป เผื่อต้องแก้ข้อความทีหลัง
+    // (เช่น กรณี backend normalize คำผิดให้)
+    return messageDiv;
 }
 
 chatForm.addEventListener('submit', function (e) {
@@ -30,10 +34,15 @@ chatForm.addEventListener('submit', function (e) {
     if (!message) return;
 
     // =====================================================
-    // ยังไม่แสดงข้อความของ User ตรงนี้
-    // เพราะต้องรอ Backend ตรวจสอบก่อนว่า
-    // พิมพ์สลับภาษาหรือไม่ เช่น Fdlo -> โกสน
+    // แสดงข้อความของ User ทันที (Optimistic UI)
+    //
+    // เดิม: รอ Backend ตอบก่อนถึงจะแสดง ทำให้รู้สึกหน่วง
+    // ใหม่: แสดงทันทีด้วยข้อความดิบที่พิมพ์
+    //       แล้วถ้า Backend แก้คำผิดให้ (เช่น Fdlo -> โกสน)
+    //       ค่อยไปแก้ข้อความใน element เดิมทีหลัง
     // =====================================================
+
+    const userMessageEl = appendMessage('user', message);
 
     userInput.value = '';
 
@@ -94,19 +103,21 @@ chatForm.addEventListener('submit', function (e) {
         loadingMessage.remove();
 
         // =================================================
-        // แสดงข้อความของ User
-        //
-        // ถ้า Backend แก้ Fdlo -> โกสน
-        // จะใช้ "โกสน"
-        //
-        // ถ้าไม่มี normalized_message
-        // จะ fallback กลับไปใช้ message เดิม
+        // ถ้า Backend แก้คำผิดให้ (normalized_message)
+        // และต่างจากที่พิมพ์ไว้ตอนแรก
+        // ให้คงข้อความเดิมที่พิมพ์ไว้ (เช่น "Fdlo")
+        // แล้วแปะข้อความเล็กๆ บอกคำที่ถูกต้องต่อท้าย
         // =================================================
 
-        appendMessage(
-            'user',
-            data.normalized_message || message
-        );
+        if (
+            data.normalized_message &&
+            data.normalized_message !== message
+        ) {
+            const hintDiv = document.createElement('div');
+            hintDiv.classList.add('normalized-hint');
+            hintDiv.innerText = `คำที่คุณต้องการคือ "${data.normalized_message}"`;
+            userMessageEl.appendChild(hintDiv);
+        }
 
         // =================================================
         // แสดงคำตอบจาก AI
@@ -126,11 +137,7 @@ chatForm.addEventListener('submit', function (e) {
 
         loadingMessage.remove();
 
-        // ถ้าเกิด Error ก็ยังแสดงข้อความที่ผู้ใช้พิมพ์
-        appendMessage(
-            'user',
-            message
-        );
+        // ข้อความ user แสดงไปแล้วตั้งแต่ต้น ไม่ต้อง append ซ้ำ
 
         appendMessage(
             'bot',

@@ -47,7 +47,7 @@ class PlantForm(forms.ModelForm):
 
         if plants.exists():
             raise forms.ValidationError(
-                'ชื่อพืชนี้มีอยู่ในระบบแล้ว'
+                'ไม่สามารถบันทึกได้ เนื่องจากมีรายการพืชนี้อยู่ในระบบแล้ว'
             )
 
         # ตรวจว่าชื่อพืชซ้ำกับชื่อหมวดหมู่หรือไม่
@@ -57,7 +57,7 @@ class PlantForm(forms.ModelForm):
 
         if categories.exists():
             raise forms.ValidationError(
-                'ชื่อพืชนี้ซ้ำกับชื่อหมวดหมู่พืช'
+                'ไม่สามารถบันทึกได้ เนื่องจากชื่อรายการพืชซ้ำกับหมวดหมู่พืชที่มีอยู่ในระบบแล้ว'
             )
 
         return plant_name
@@ -102,7 +102,7 @@ class PlantCategoryForm(forms.ModelForm):
 
         if categories.exists():
             raise forms.ValidationError(
-                'ชื่อหมวดหมู่นี้มีอยู่ในระบบแล้ว'
+                'ไม่สามารถบันทึกได้ เนื่องจากชื่อหมวดหมู่มีอยู่ในระบบแล้ว'
             )
 
         # ตรวจว่าชื่อหมวดหมู่ซ้ำกับชื่อพืชหรือไม่
@@ -112,7 +112,7 @@ class PlantCategoryForm(forms.ModelForm):
 
         if plants.exists():
             raise forms.ValidationError(
-                'ชื่อหมวดหมู่นี้ซ้ำกับชื่อพืช'
+                'ไม่สามารถบันทึกได้ เนื่องจากชื่อหมวดหมู่ซ้ำกับรายการพืชที่มีอยู่ในระบบแล้ว'
             )
 
         return category_name
@@ -164,6 +164,21 @@ class AdminUserForm(forms.ModelForm):
             # หมายเหตุ: ไม่ได้กำหนด widget ของ 'password' ไว้ที่นี่ เพราะถูกกำหนดไว้แล้วด้านบน
             # (การประกาศ field แยกนอก Meta จะ override ค่าที่มาจาก ModelForm อัตโนมัติ)
         }
+    def clean_username(self):
+        username = self.cleaned_data['username'].strip()
+
+        admins = Admin.objects.filter(username__iexact=username)
+
+        # ตอนแก้ไข ให้ไม่นับข้อมูลตัวเอง
+        if self.instance.pk:
+            admins = admins.exclude(pk=self.instance.pk)
+
+        if admins.exists():
+            raise forms.ValidationError(
+                'ไม่สามารถบันทึกได้ เนื่องจากชื่อผู้ใช้นี้มีอยู่ในระบบแล้ว'
+            )
+
+        return username
 
 
 # ═════════════════════════════════════════════

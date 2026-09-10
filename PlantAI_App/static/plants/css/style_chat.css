@@ -181,3 +181,10 @@
 .btn-send:active {
     transform: scale(0.97);
 }
+
+.normalized-hint {
+    font-size: 0.75rem;
+    opacity: 0.7;
+    margin-top: 4px;
+    font-style: italic;
+}
