@@ -23,6 +23,27 @@ if not ALLOWED_HOSTS:
     # fallback เผื่อยังไม่ได้ตั้งค่า env — ครอบคลุมโดเมน Railway ทุกแบบ
     ALLOWED_HOSTS = ['.railway.app', 'localhost', '127.0.0.1']
 
+# CSRF trusted origins ต้องมี scheme (https://) นำหน้าเสมอ
+# บน Railway ให้ตั้ง Variable ชื่อ CSRF_TRUSTED_ORIGINS เป็นโดเมนจริง เช่น
+# https://web-production-449d6.up.railway.app (คั่นด้วย comma ถ้ามีหลายโดเมน)
+_csrf_trusted_env = os.getenv('CSRF_TRUSTED_ORIGINS', '')
+CSRF_TRUSTED_ORIGINS = [o.strip() for o in _csrf_trusted_env.split(',') if o.strip()]
+if not CSRF_TRUSTED_ORIGINS:
+    # fallback เผื่อยังไม่ได้ตั้งค่า env
+    CSRF_TRUSTED_ORIGINS = [
+        'https://*.railway.app',
+        'https://web-production-449d6.up.railway.app',
+    ]
+
+# Railway ใช้ reverse proxy (SSL terminate ที่ proxy แล้วส่ง HTTP เข้ามาในแอปภายใน)
+# ต้องบอก Django ว่า request ที่มี header นี้ให้ถือว่าเป็น HTTPS ไม่งั้น CSRF/Session cookie จะพัง
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+USE_X_FORWARDED_HOST = True
+
+# บังคับ cookie เป็น secure เมื่อไม่ใช่โหมด DEBUG (เช่นตอน deploy จริงบน Railway)
+CSRF_COOKIE_SECURE = not DEBUG
+SESSION_COOKIE_SECURE = not DEBUG
+
 # OpenAI API Key
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
