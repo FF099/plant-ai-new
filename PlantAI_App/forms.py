@@ -1,6 +1,8 @@
 from django import forms
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError as DjangoValidationError
+import dns.resolver
+import dns.exception
 from .models import Plant, PlantCategory, Faq, Admin
 
 
@@ -192,6 +194,35 @@ class AdminUserForm(forms.ModelForm):
             raise forms.ValidationError(
                 'รูปแบบอีเมลไม่ถูกต้อง กรุณากรอกอีเมลให้ถูกต้อง เช่น example@email.com'
             )
+
+        # ตรวจสอบว่า "โดเมน" ของอีเมลรับอีเมลได้จริง (เช็ค MX record ผ่าน DNS)
+        # กัน case พิมพ์โดเมนมั่ว เช่น user@abc.def ที่ผ่าน format check แต่ไม่มีโดเมนจริงอยู่
+        # หมายเหตุ: ไม่ fallback ไปเช็ค A record ต่อ เพราะโดเมนที่จดทะเบียนไว้เฉยๆ/หน้า parking
+        # (เช่น lol.lol) มักมี A record สำหรับเปิดเว็บได้ ทั้งที่ไม่มีเมลเซิร์ฟเวอร์จริง
+        # ทำให้เช็คหลุดผ่านได้ง่ายเกินไป ส่วนโดเมนที่รับอีเมลได้จริงแทบทั้งหมดตั้ง MX ไว้ชัดเจนอยู่แล้ว
+        domain = email.rsplit('@', 1)[-1]
+        try:
+            mx_records = dns.resolver.resolve(domain, 'MX')
+        except (dns.resolver.NXDOMAIN, dns.resolver.NoAnswer, dns.resolver.NoNameservers):
+            raise forms.ValidationError(
+                f'ไม่พบโดเมนอีเมล "{domain}" ที่รับอีเมลได้จริง กรุณาตรวจสอบอีเมลอีกครั้ง'
+            )
+        except dns.exception.Timeout:
+            # DNS server ตอบช้า/เข้าไม่ถึง ไม่ควร block การใช้งานทั้งหมดเพราะเหตุผลนี้
+            # (ปล่อยผ่านไปก่อน ดีกว่าทำให้ผู้ใช้กรอกอีเมลถูกต้องแล้วบันทึกไม่ได้)
+            mx_records = None
+
+        if mx_records is not None:
+            # เช็คกรณี "null MX" ตาม RFC 7505 — โดเมนประกาศ MX เป็น "0 ." เพื่อบอกชัดเจนว่า
+            # "โดเมนนี้ไม่รับอีเมลใดๆ ทั้งสิ้น" (เช่น example.com) ถ้าเจอ target เป็น "." ให้ถือว่าไม่ผ่าน
+            is_null_mx = all(
+                str(r.exchange).rstrip('.') == '' for r in mx_records
+            )
+            if is_null_mx:
+                raise forms.ValidationError(
+                    f'โดเมนอีเมล "{domain}" ประกาศไว้ชัดเจนว่าไม่รับอีเมล (null MX) '
+                    'กรุณาใช้อีเมลอื่น'
+                )
 
         return email
 
