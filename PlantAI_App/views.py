@@ -130,37 +130,6 @@ PLANT_SYNONYMS = {
 }
 
 
-# ─────────────────────────────────────────────
-#  1.2 รองรับกรณี "พิมพ์สลับภาษา" (ลืมสลับคีย์บอร์ด EN/TH)
-#      ผู้ใช้ตั้งใจพิมพ์ไทย แต่คีย์บอร์ดอยู่โหมดอังกฤษ -> ได้ตัวอักษรละตินที่ไม่มีความหมาย
-#      เช่น "โกสน" (กดตำแหน่งปุ่มจริง) -> ออกมาเป็น "Fdlo" บนคีย์บอร์ด EN
-#      เรา map ตำแหน่งปุ่มกลับเป็นภาษาไทยตามผัง Kedmanee (ผังมาตรฐานของไทย)
-# ─────────────────────────────────────────────
-KEDMANEE_UNSHIFTED = {
-    'q': 'ๆ', 'w': 'ไ', 'e': 'ำ', 'r': 'พ', 't': 'ะ', 'y': 'ั', 'u': 'ี', 'i': 'ร', 'o': 'น', 'p': 'ย',
-    '[': 'บ', ']': 'ล', '\\': 'ฃ',
-    'a': 'ฟ', 's': 'ห', 'd': 'ก', 'f': 'ด', 'g': 'เ', 'h': '้', 'j': '่', 'k': 'า', 'l': 'ส', ';': 'ว', "'": 'ง',
-    'z': 'ผ', 'x': 'ป', 'c': 'แ', 'v': 'อ', 'b': 'ิ', 'n': 'ื', 'm': 'ท', ',': 'ม', '.': 'ใ', '/': 'ฝ',
-}
-KEDMANEE_SHIFTED = {
-    'Q': '๐', 'W': '"', 'E': 'ฎ', 'R': 'ฑ', 'T': 'ธ', 'Y': 'ํ', 'U': '๊', 'I': 'ณ', 'O': 'ฯ', 'P': 'ญ',
-    '{': 'ฐ', '}': ',',
-    'A': 'ฤ', 'S': 'ฆ', 'D': 'ฏ', 'F': 'โ', 'G': 'ฌ', 'H': '็', 'J': '๋', 'K': 'ษ', 'L': 'ศ', ':': 'ซ', '"': '.',
-    'Z': '(', 'X': ')', 'C': 'ฉ', 'V': 'ฮ', 'B': 'ฺ', 'N': '์', 'M': '?', '<': 'ฒ', '>': 'ฬ', '?': 'ฦ',
-}
-_KEDMANEE_MAP = {**KEDMANEE_UNSHIFTED, **KEDMANEE_SHIFTED}
-
-
-def fix_kedmanee_typo(text: str) -> str:
-    """
-    แปลงข้อความที่พิมพ์ผิดภาษา (ตั้งใจพิมพ์ไทยแต่ลืมสลับเป็นคีย์บอร์ด EN)
-    กลับเป็นข้อความไทยที่ตั้งใจพิมพ์จริง โดย map ตามตำแหน่งปุ่ม Kedmanee
-    เช่น fix_kedmanee_typo("Fdlo") -> "โกสน"
-    ตัวอักษรที่ไม่อยู่ใน mapping (เช่น เป็นภาษาไทยอยู่แล้ว ตัวเลข ช่องว่าง) จะคงค่าเดิม
-    """
-    return ''.join(_KEDMANEE_MAP.get(ch, ch) for ch in text)
-
-
 def _clean(text: str) -> str:
     """ลบช่องว่าง/ไม้ยมก + lower-case (ใช้เทียบคำแบบไม่สนตัวพิมพ์เล็ก/ใหญ่ ไม่สนช่องว่าง)"""
     return re.sub(r'[\sๆ]', '', text.lower())
@@ -168,23 +137,11 @@ def _clean(text: str) -> str:
 
 def build_search_variants(user_input: str):
     """
-    สร้างข้อความหลายเวอร์ชันไว้ใช้ค้นหา เรียงตามลำดับความสำคัญ:
-      1. ข้อความต้นฉบับ (ปกติ)
-      2. ข้อความที่ 'แก้พิมพ์ผิดภาษา' แบบคีย์บอร์ด Kedmanee
-         (จะเพิ่มเข้ามาเฉพาะเมื่อแปลงแล้วได้ผลลัพธ์ต่างจากต้นฉบับ)
+    สร้างข้อความไว้ใช้ค้นหา (ข้อความต้นฉบับเท่านั้น)
     คืนค่าเป็น list ของ (lower_text, clean_text)
     """
-    variants = []
-
     original_lower = user_input.lower()
-    variants.append((original_lower, _clean(original_lower)))
-
-    fixed = fix_kedmanee_typo(user_input)
-    if fixed != user_input:
-        fixed_lower = fixed.lower()
-        variants.append((fixed_lower, _clean(fixed_lower)))
-
-    return variants
+    return [(original_lower, _clean(original_lower))]
 
 
 # reverse-lookup: alias(clean) -> canonical plant_name
@@ -200,7 +157,6 @@ _PLANT_ALIAS_LOOKUP.sort(key=lambda pair: len(pair[0]), reverse=True)
 def match_plant_names(user_input: str):
     """
     ตรวจว่าข้อความผู้ใช้มีชื่อพืช/คำพ้อง/ชื่ออังกฤษของพืชตัวไหนบ้าง
-    รองรับทั้งข้อความปกติ และข้อความที่พิมพ์ผิดภาษา (คีย์บอร์ด EN/TH สลับกัน)
     คืนค่าเป็น set ของชื่อพืชจริง (canonical, ตรงกับ plant_name ใน DB)
     """
     matched = set()
@@ -235,14 +191,13 @@ def admin_required(view_func):
 #      แทนที่จะให้ AI ตอบจากความรู้ที่มันมีเอง เพื่อป้องกันการตอบมั่ว/หลอน (hallucination))
 #
 #      ปรับปรุงจากเดิม: เพิ่มขั้นตอน D0 ตรวจชื่อพืชเจาะจงก่อน (ผ่าน PLANT_SYNONYMS)
-#      และทุกขั้นตอน A-D ตรวจกับทั้งข้อความต้นฉบับ + ข้อความที่แก้พิมพ์ผิดภาษาแล้ว
 # ─────────────────────────────────────────────
 def get_plant_context(user_input):
     # ดึงพืชทั้งหมดพร้อม join ตาราง category ไว้ล่วงหน้า (select_related) เพื่อลดจำนวน query ตอน loop
     plants = Plant.objects.select_related('category').all()
 
-    # สร้างข้อความหลายเวอร์ชันไว้เทียบ (ต้นฉบับ + เวอร์ชันแก้พิมพ์ผิดภาษาคีย์บอร์ด ถ้ามี)
-    variants = build_search_variants(user_input)  # [(lower_text, clean_text), ...]
+    # สร้างข้อความไว้เทียบ (ข้อความต้นฉบับ)
+    variants = build_search_variants(user_input)  # [(lower_text, clean_text)]
 
     # ── D0: ตรวจหาชื่อพืชเจาะจงก่อนเป็นอันดับแรก (สำคัญสุด) ──
     matched_plant_names = match_plant_names(user_input)
@@ -271,7 +226,7 @@ def get_plant_context(user_input):
     selected_category_obj = None
 
     def any_variant_has(keywords):
-        """เช็คว่ามี keyword ใดปรากฏใน variant ไหนก็ได้ (ต้นฉบับ หรือแก้พิมพ์ผิดภาษาแล้ว)"""
+        """เช็คว่ามี keyword ใดปรากฏในข้อความหรือไม่"""
         for lower_text, _clean_text in variants:
             if any(kw in lower_text for kw in keywords):
                 return True
@@ -454,11 +409,10 @@ def chat_with_llm(request):
     user_input = request.POST.get('message', '').strip()
 
     # =====================================================
-    # 1. ตรวจสอบและแก้ข้อความกรณีพิมพ์สลับภาษา
+    # 1. ทำ normalize ข้อความ
     # =====================================================
-    # แปลงข้อความผิดภาษานี้ให้เป็นภาษาไทยทั้งประโยคเป็นค่าเริ่มต้นก่อน
-    fixed_input = fix_kedmanee_typo(user_input)
-    normalized_input = fixed_input
+    # ใช้ข้อความต้นฉบับเป็นค่าเริ่มต้นก่อน
+    normalized_input = user_input
 
     # หากพบชื่อต้นไม้เจาะจง ให้ใช้ชื่อมาตรฐานจาก DB
     matched_plant_names = match_plant_names(user_input)
@@ -469,7 +423,7 @@ def chat_with_llm(request):
         # =====================================================
         # 2. ค้นหาข้อมูลพืชจากฐานข้อมูล
         # =====================================================
-        context_data = get_plant_context(fixed_input)
+        context_data = get_plant_context(user_input)
 
         # =====================================================
         # 3. ส่งข้อมูลให้ OpenAI
