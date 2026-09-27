@@ -26,51 +26,62 @@
                    placeholder="ค้นหาชื่อพืช..." value="{{ search|default_if_none:'' }}">
         </div>
 
-        <!-- Dropdown เลือกหมวดหมู่: วน loop จาก categories ที่ view ส่งมา
-             ตัวเลือกที่ตรงกับ selected_category (ค่าที่ผู้ใช้เลือกไว้ก่อนหน้า) จะถูก mark ว่า selected -->
+        <!-- Dropdown เลือกหมวดหมู่ -->
         <div class="col-md-3 col-6">
             <label class="filter-row-label">หมวดหมู่</label>
-            <select name="category" class="form-select">
-                <option value="">-- ทุกหมวด --</option>
-                {% for cat in categories %}
-                <option value="{{ cat.category_id }}" {% if selected_category == cat.category_id %}selected{% endif %}>
-                    {{ cat.category_name }}
-                </option>
-                {% endfor %}
-            </select>
+            <div class="select-wrapper">
+                <select name="category" class="form-select custom-select-icon">
+                    <option value="">ทุกหมวด</option>
+                    {% for cat in categories %}
+                    <option value="{{ cat.category_id }}" {% if selected_category == cat.category_id %}selected{% endif %}>
+                        {{ cat.category_name }}
+                    </option>
+                    {% endfor %}
+                </select>
+                <i class="fas fa-chevron-down select-icon"></i>
+            </div>
         </div>
 
-        <!-- Dropdown เลือกระดับแสง: ตัวเลือกคงที่ (low/medium/high) ตรงกับ LIGHT_CHOICES ใน model Plant -->
+        <!-- Dropdown เลือกระดับแสง -->
         <div class="col-md-3 col-6">
             <label class="filter-row-label">แสง</label>
-            <select name="light" class="form-select">
-                <option value="">-- ทั้งหมด --</option>
-                <option value="low" {% if selected_light == "low" %}selected{% endif %}>แสงน้อย</option>
-                <option value="medium" {% if selected_light == "medium" %}selected{% endif %}>แสงปานกลาง</option>
-                <option value="high" {% if selected_light == "high" %}selected{% endif %}>แสงมาก</option>
-            </select>
+            <div class="select-wrapper">
+                <select name="light" class="form-select custom-select-icon">
+                    <option value="">ทั้งหมด</option>
+                    <option value="low" {% if selected_light == "low" %}selected{% endif %}>แสงน้อย</option>
+                    <option value="medium" {% if selected_light == "medium" %}selected{% endif %}>แสงปานกลาง</option>
+                    <option value="high" {% if selected_light == "high" %}selected{% endif %}>แสงมาก</option>
+                </select>
+                <i class="fas fa-chevron-down select-icon"></i>
+            </div>
         </div>
 
-        <!-- Dropdown เลือกระดับน้ำ: ตรงกับ WATER_CHOICES ใน model Plant -->
+        <!-- Dropdown เลือกระดับน้ำ -->
         <div class="col-md-3 col-6">
             <label class="filter-row-label">น้ำ</label>
-            <select name="water" class="form-select">
-                <option value="">-- ทั้งหมด --</option>
-                <option value="low" {% if selected_water == "low" %}selected{% endif %}>น้ำน้อย</option>
-                <option value="medium" {% if selected_water == "medium" %}selected{% endif %}>น้ำปานกลาง</option>
-                <option value="high" {% if selected_water == "high" %}selected{% endif %}>น้ำมาก</option>
-            </select>
+            <div class="select-wrapper">
+                <select name="water" class="form-select custom-select-icon">
+                    <option value="">ทั้งหมด</option>
+                    <option value="low" {% if selected_water == "low" %}selected{% endif %}>น้ำน้อย</option>
+                    <option value="medium" {% if selected_water == "medium" %}selected{% endif %}>น้ำปานกลาง</option>
+                    <option value="high" {% if selected_water == "high" %}selected{% endif %}>น้ำมาก</option>
+                </select>
+                <i class="fas fa-chevron-down select-icon"></i>
+            </div>
         </div>
 
-        <!-- Dropdown เลือกระดับความชื้น: ตรงกับ HUMIDITY_CHOICES ใน model Plant -->
+        <!-- Dropdown เลือกระดับความชื้น -->
         <div class="col-md-3 col-6">
             <label class="filter-row-label">ความชื้น</label>
-            <select name="humidity" class="form-select">
-                <option value="">-- ทั้งหมด --</option>
-                <option value="low" {% if selected_humidity == "low" %}selected{% endif %}>ความชื้นต่ำ</option>
-                <option value="medium" {% if selected_humidity == "medium" %}selected{% endif %}>ความชื้นปานกลาง</option>
-                <option value="high" {% if selected_humidity == "high" %}selected{% endif %}>ความชื้นสูง</option>
-            </select>
+            <div class="select-wrapper">
+                <select name="humidity" class="form-select custom-select-icon">
+                    <option value="">ทั้งหมด</option>
+                    <option value="low" {% if selected_humidity == "low" %}selected{% endif %}>ความชื้นต่ำ</option>
+                    <option value="medium" {% if selected_humidity == "medium" %}selected{% endif %}>ความชื้นปานกลาง</option>
+                    <option value="high" {% if selected_humidity == "high" %}selected{% endif %}>ความชื้นสูง</option>
+                </select>
+                <i class="fas fa-chevron-down select-icon"></i>
+            </div>
         </div>
 
         <!-- ปุ่มค้นหา (submit ฟอร์ม) และปุ่มรีเซ็ต (กลับไปหน้าแรกแบบไม่มี query string เลย) -->

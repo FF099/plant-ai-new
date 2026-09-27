@@ -259,3 +259,28 @@
     margin: 0;
     line-height: 1.5;
 }
+
+/* ─── Select with icon ─── */
+.select-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.select-wrapper .custom-select-icon {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    width: 100%;
+    padding-right: 2.5rem; /* เผื่อที่ให้ไอคอนไม่ทับข้อความ */
+    cursor: pointer;
+}
+
+.select-wrapper .select-icon {
+    position: absolute;
+    top: 50%;
+    right: 14px;
+    transform: translateY(-50%);
+    pointer-events: none;
+    font-size: 0.8rem;
+    color: var(--green-mid);
+}

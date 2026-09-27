@@ -1,4 +1,11 @@
+# Web Framework หลักสำหรับพัฒนาเว็บ
 Django==5.2.12
+
+# SDK สำหรับเชื่อมต่อและใช้งาน OpenAI API (เช่น ChatGPT/GPT-4)
 openai==2.48.0
+
+# โหลด Environment Variables จากไฟล์ .env เข้าสู่ระบบ
 python-dotenv==1.2.2
+
+# ใช้ Query MX/TXT Records ในระบบ DNS เพื่อตรวจสอบความถูกต้องและเช็ก Mail Server ของโดเมนอีเมล
 dnspython==2.7.0

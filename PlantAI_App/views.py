@@ -11,8 +11,7 @@ from openai import OpenAI
 from .models import Admin, PlantCategory, Plant, Faq, SearchSummary, record_search
 from .forms import PlantForm, PlantCategoryForm, FaqForm, AdminUserForm, AdminLoginForm
 
-# เรียกใช้ OpenAI API Client
-# ดึงค่า OPENAI_API_KEY จาก settings.py (ถ้าไม่มีให้ใช้ค่าว่าง '' แทน เพื่อไม่ให้ error ตอน import)
+# ดึงค่า OPENAI_API_KEY จาก settings.py
 client = OpenAI(api_key=getattr(settings, 'OPENAI_API_KEY', ''))
 
 
@@ -144,8 +143,7 @@ def build_search_variants(user_input: str):
     return [(original_lower, _clean(original_lower))]
 
 
-# reverse-lookup: alias(clean) -> canonical plant_name
-# สร้างครั้งเดียวตอน import, เรียงยาว->สั้น กัน alias สั้นแย่ง match ก่อน alias ที่เจาะจงกว่า
+
 _PLANT_ALIAS_LOOKUP = []
 for _canonical_name, _aliases in PLANT_SYNONYMS.items():
     _all_terms = set(_aliases) | {_canonical_name}
