@@ -1,7 +1,8 @@
 from django import forms
+from django.core.validators import validate_email
+from django.core.exceptions import ValidationError as DjangoValidationError
 from .models import Plant, PlantCategory, Faq, Admin
 
-# ตัวเลือก Dropdown สำหรับ แสง, น้ำ, ความชื้น (ตรงกับค่าภาษาไทยในเล่ม)
 
 
 # ═════════════════════════════════════════════
@@ -179,6 +180,20 @@ class AdminUserForm(forms.ModelForm):
             )
 
         return username
+
+    def clean_email(self):
+        # ตรวจรูปแบบอีเมลฝั่ง server อีกชั้น (ไม่พึ่งแค่ HTML5 validation ของ browser
+        # ที่ผู้ใช้สามารถปิดหรือ bypass ได้ง่าย เช่น ส่ง request ตรงๆ โดยไม่ผ่านฟอร์ม)
+        email = self.cleaned_data['email'].strip()
+
+        try:
+            validate_email(email)
+        except DjangoValidationError:
+            raise forms.ValidationError(
+                'รูปแบบอีเมลไม่ถูกต้อง กรุณากรอกอีเมลให้ถูกต้อง เช่น example@email.com'
+            )
+
+        return email
 
 
 # ═════════════════════════════════════════════

@@ -4,7 +4,7 @@ from django.http import JsonResponse
 from django.core.paginator import Paginator
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
-from django.db.models import Q
+from django.db.models import Q, Sum
 from django.contrib import messages
 from openai import OpenAI
 
@@ -578,7 +578,12 @@ def management_view(request):
     tab = request.GET.get('tab', 'plants')  # ค่าเริ่มต้นถ้าไม่ระบุ tab คือ 'plants'
     plants = Plant.objects.select_related('category', 'admin').all()
     categories = PlantCategory.objects.select_related('admin').all()
-    faqs = Faq.objects.all()
+    # annotate จำนวนครั้งที่ถูกค้นหารวม (รวมจาก SearchSummary ทุกอันที่ผูกกับ FAQ นี้
+    # ปกติ FAQ หนึ่งอันจะถูกสร้างจาก summary เดียว แต่ใช้ Sum เผื่อกรณีมีมากกว่า 1 summary ผูกอยู่)
+    # เรียงจากจำนวนครั้งค้นหามากไปน้อย เพื่อให้ผู้ใช้ตัดสินใจลบง่ายขึ้น
+    faqs = Faq.objects.annotate(
+        total_search_count=Sum('search_summaries__search_count')
+    ).order_by('-total_search_count')
     admins = Admin.objects.all()
 
     return render(request, 'management.html', {
@@ -676,11 +681,23 @@ def category_edit(request, pk):
 
 @admin_required
 def category_delete(request, pk):
-    # หมายเหตุ: PlantCategory ผูกกับ Plant แบบ CASCADE ดังนั้นลบ category นี้จะลบพืชในหมวดนี้ทั้งหมดไปด้วย
     cat = get_object_or_404(PlantCategory, pk=pk)
     cat_name = cat.category_name
+
+    # ตรวจก่อนว่ามีพืชที่เชื่อมอยู่กับหมวดหมู่นี้หรือไม่ (related_name='plants' ใน Plant.category)
+    # ถ้ามี ห้ามลบ เพื่อป้องกันการลบพืชที่ใช้งานอยู่ไปโดยไม่ตั้งใจ (เดิมเป็น CASCADE ลบทันทีไม่มีเตือน)
+    plant_count = cat.plants.count()
+    if plant_count > 0:
+        messages.error(
+            request,
+            f'ไม่สามารถลบหมวดหมู่ "{cat_name}" ได้ เนื่องจากยังมีพืชผูกอยู่กับหมวดหมู่นี้ '
+            f'จำนวน {plant_count} รายการ (ดูแลโดย {cat.admin.username}) '
+            f'กรุณาลบหรือย้ายพืชในหมวดนี้ออกก่อน'
+        )
+        return redirect('/management/?tab=categories')
+
     cat.delete()
-    messages.success(request, f'ลบหมวดหมู่ "{cat_name}" เรียบร้อยแล้ว (พืชในหมวดนี้ถูกลบไปด้วย)')
+    messages.success(request, f'ลบหมวดหมู่ "{cat_name}" เรียบร้อยแล้ว')
     return redirect('/management/?tab=categories')
 
 
@@ -713,6 +730,14 @@ def admin_add(request):
 @admin_required
 def admin_edit(request, pk):
     admin_obj = get_object_or_404(Admin, pk=pk)
+
+    # ป้องกัน admin คนหนึ่งแก้ไขข้อมูล (รวมถึงรหัสผ่าน) ของ admin คนอื่น
+    # โดยการเปลี่ยน pk ใน URL เอง ต้องเช็คที่ฝั่ง server เป็นหลัก (ปุ่มที่ซ่อนไว้ใน template
+    # เป็นแค่การป้องกันชั้น UX เท่านั้น ไม่เพียงพอถ้าไม่มีเช็คตรงนี้)
+    if admin_obj.admin_id != request.session.get('admin_id'):
+        messages.error(request, 'คุณไม่มีสิทธิ์แก้ไขข้อมูลของผู้ดูแลระบบคนอื่น')
+        return redirect('/management/?tab=admins')
+
     if request.method == 'POST':
         form = AdminUserForm(request.POST, instance=admin_obj)
         if form.is_valid():

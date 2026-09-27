@@ -59,7 +59,7 @@
                     <td>{{ p.admin.username }}</td>
                     <td>
                         <!-- ปุ่มแก้ไข: ไปหน้าฟอร์มแก้ไขพืชนี้ (ส่ง plant_id เป็น pk) -->
-                        <a href="{% url 'plant_edit' p.plant_id %}" class="btn btn-plant-warning">แก้ไข</a>
+                        <a href="{% url 'plant_edit' p.plant_id %}" class="btn btn-plant-warning mb-1">แก้ไข</a>
                         <!-- ปุ่มลบ: มี confirm() dialog ป้องกันการกดลบพลาด ก่อนเรียก view plant_delete จริง -->
                         <a href="{% url 'plant_delete' p.plant_id %}" class="btn btn-plant-danger" onclick="return confirm('ยืนยันการลบ?')">ลบ</a>
                     </td>
@@ -100,9 +100,10 @@
                     <td>{{ c.admin.username }}</td>
                     <td>
                         <!-- ปุ่มแก้ไขหมวดหมู่นี้ -->
-                        <a href="{% url 'category_edit' c.category_id %}" class="btn btn-plant-warning">แก้ไข</a>
+                        <a href="{% url 'category_edit' c.category_id %}" class="btn btn-plant-warning mb-1">แก้ไข</a>
                         <!-- ปุ่มลบหมวดหมู่นี้ (มี confirm ป้องกันกดพลาด)
-                             หมายเหตุ: การลบหมวดหมู่จะลบพืชในหมวดนี้ทั้งหมดด้วย เพราะ Plant ผูก category แบบ CASCADE -->
+                             หมายเหตุ: ถ้ายังมีพืชผูกอยู่กับหมวดหมู่นี้ view category_delete จะไม่ลบให้
+                             และแสดงข้อความเตือนแทน (กันการลบพืชที่ใช้งานอยู่ไปโดยไม่ตั้งใจ) -->
                         <a href="{% url 'category_delete' c.category_id %}" class="btn btn-plant-danger" onclick="return confirm('ยืนยันการลบ?')">ลบ</a>
                     </td>
                 </tr>
@@ -128,11 +129,13 @@
                     <th>หัวข้อ FAQ</th>
                     <th>คำตอบ</th>
                     <th>วันที่สร้าง</th>
+                    <!-- จำนวนครั้งที่เงื่อนไขนี้ถูกใช้ค้นหา (รวมจาก search_summary) ช่วยให้ตัดสินใจลบง่ายขึ้น -->
+                    <th>จำนวนครั้งที่ค้นหา</th>
                     <th>จัดการ</th>
                 </tr>
             </thead>
             <tbody>
-                <!-- วน loop แสดง FAQ ทั้งหมด (faqs) เรียงตามที่ view ส่งมา -->
+                <!-- วน loop แสดง FAQ ทั้งหมด (faqs) เรียงตามที่ view ส่งมา (มากไปน้อยตามจำนวนครั้งค้นหา) -->
                 {% for f in faqs %}
                 <tr>
                     <td><strong>{{ f.faq_id }}</strong></td>
@@ -140,13 +143,14 @@
                     <td>{{ f.answer_text }}</td>
                     <!-- format วันที่แบบไทย: วัน/เดือน/ปี ชั่วโมง:นาที -->
                     <td>{{ f.created_at|date:"d/m/Y H:i" }}</td>
+                    <td class="text-center">{{ f.total_search_count|default:0 }}</td>
                     <td>
                         <!-- ปุ่มลบ FAQ นี้ (มี confirm ป้องกันกดพลาด) -->
                         <a href="{% url 'faq_delete' f.faq_id %}" class="btn btn-plant-danger" onclick="return confirm('ยืนยันการลบ?')">ลบ</a>
                     </td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="5" class="text-center text-muted py-4">ไม่พบข้อมูล FAQ</td></tr>
+                <tr><td colspan="6" class="text-center text-muted py-4">ไม่พบข้อมูล FAQ</td></tr>
                 {% endfor %}
             </tbody>
         </table>
@@ -178,8 +182,13 @@
                     <td>{{ a.username }}</td>
                     <td>{{ a.email }}</td>
                     <td>
-                        <!-- ปุ่มแก้ไขข้อมูลผู้ดูแลระบบคนนี้ -->
+                        <!-- ปุ่มแก้ไขข้อมูลผู้ดูแลระบบคนนี้: แสดงเฉพาะแถวของตัวเองเท่านั้น
+                             (การเช็คสิทธิ์จริงอยู่ที่ view admin_edit ฝั่ง server, ส่วนนี้แค่ซ่อนปุ่มเพื่อ UX) -->
+                        {% if a.admin_id == request.session.admin_id %}
                         <a href="{% url 'admin_edit' a.admin_id %}" class="btn btn-plant-warning">แก้ไข</a>
+                        {% else %}
+                        <span class="text-muted">—</span>
+                        {% endif %}
                     </td>
                 </tr>
                 {% empty %}
