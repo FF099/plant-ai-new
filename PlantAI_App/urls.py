@@ -7,7 +7,7 @@ urlpatterns = [
     # หน้าแรก และ Chat AI
     path('', views.index, name='index'),                     # หน้าแรก แสดงรายการพืชทั้งหมด + filter
     path('chat/', views.chat, name='chat'),                   # หน้าแชทกับ AI (แสดง template chat.html)
-    path('chat/api/', views.chat_with_llm, name='chat_api'),  # endpoint รับข้อความจากผู้ใช้ ส่งต่อให้ LLM แล้วตอบกลับเป็น JSON
+    path('chat/api/', views.chat_with_llm, name='chat_api'),  # รับข้อความจากผู้ใช้ ส่งต่อให้ LLM แล้วตอบกลับเป็น JSON
 
     # ระบบสิทธิ์เข้าใช้งาน / ออกจากระบบ
     path('login/', views.login_view, name='login'),               # หน้า login สำหรับผู้ดูแลระบบ

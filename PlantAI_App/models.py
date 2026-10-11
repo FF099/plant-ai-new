@@ -7,18 +7,13 @@ from django.db import models
 
 # ─────────────────────────────────────────────
 #  ฟังก์ชันสำหรับ gen รหัสรูปแบบ P001, C001, A001, F001, L001, S001
-#  ใช้ร่วมกันในทุกโมเดลที่มี primary key เป็นรหัส (ไม่ใช้ auto-increment ปกติ)
+#  ใช้ร่วมกันในทุกโมเดลที่มี primary key เป็นรหัส
 # ─────────────────────────────────────────────
 def generate_code(model, field_name, prefix, width=3):
     """
     หา running number ล่าสุดของ prefix นั้น แล้วบวก 1
     เช่น generate_code(Plant, 'plant_id', 'P') -> 'P001', 'P002', ...
 
-    Parameters:
-        model      : คลาสโมเดลที่จะ query (เช่น Plant, Admin, Faq)
-        field_name : ชื่อฟิลด์ที่เป็น primary key แบบรหัส (เช่น 'plant_id')
-        prefix     : ตัวอักษรนำหน้ารหัส (เช่น 'P', 'C', 'A', 'F', 'L', 'S')
-        width      : จำนวนหลักตัวเลขที่ต้องการ (default = 3 หลัก เช่น 001)
     """
     # ค้นหา record ล่าสุดที่ field_name ขึ้นต้นด้วย prefix ที่กำหนด
     # แล้วเรียงจากมากไปน้อย (-field_name) เพื่อเอาตัวที่มีเลขสูงสุด
@@ -42,7 +37,7 @@ def generate_code(model, field_name, prefix, width=3):
 #    ใช้สำหรับ login เข้าหน้า management และผูกเป็นเจ้าของข้อมูล plant / category
 # ═════════════════════════════════════════════
 class Admin(models.Model):
-    # primary key แบบรหัส เช่น A001 (editable=False คือแก้ผ่านฟอร์มไม่ได้ ต้อง gen เอง)
+    # primary key แบบรหัส เช่น A001
     admin_id = models.CharField(primary_key=True, max_length=11, editable=False)
     username = models.CharField(max_length=50, unique=True)  # ชื่อผู้ใช้ ต้องไม่ซ้ำกัน
     email = models.EmailField(max_length=50)
@@ -72,7 +67,6 @@ class PlantCategory(models.Model):
     category_name = models.CharField(max_length=50, unique=True)  # ชื่อหมวดหมู่ เช่น "ไม้เลื้อย"
     detail = models.TextField(blank=True, null=True)  # คำอธิบายหมวดหมู่ (ใส่หรือไม่ใส่ก็ได้)
     # FK ไปยัง Admin ผู้สร้างหมวดหมู่นี้ (1 admin สร้างได้หลาย category)
-    # ถ้า admin ถูกลบ ให้ลบ category ที่ผูกอยู่ด้วย (CASCADE)
     admin = models.ForeignKey(
         Admin, db_column="admin_id", on_delete=models.CASCADE,
         related_name="plant_categories"
@@ -154,7 +148,6 @@ class Plant(models.Model):
 
 # ═════════════════════════════════════════════
 # 4. faq — ตารางเก็บข้อมูลคำถามที่พบบ่อย
-#    บางส่วนสร้างโดย admin เอง บางส่วนถูกสร้างอัตโนมัติจากการค้นหาซ้ำๆ (ดูฟังก์ชัน _auto_generate_faq ด้านล่าง)
 # ═════════════════════════════════════════════
 class Faq(models.Model):
     faq_id = models.CharField(primary_key=True, max_length=11, editable=False)  # เช่น F001
@@ -260,7 +253,7 @@ HUMIDITY_LABELS = {'low': 'ต่ำ', 'medium': 'ปานกลาง', 'high'
 def record_search(filter_light=None, filter_water=None, filter_humidity=None, filter_category=None):
     """บันทึก log ดิบ + อัปเดต summary + auto gen FAQ ถ้าถึง threshold"""
 
-    # 1. บันทึก SearchLog (ดิบ ไม่ต้องแก้)
+    # 1. บันทึก SearchLog
     #    เก็บทุกครั้งที่มีการค้นหา ไม่สนใจว่าจะซ้ำ combo เดิมหรือไม่ (ใช้เป็นประวัติดิบ)
     SearchLog.objects.create(
         filter_light=filter_light,

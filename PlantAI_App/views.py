@@ -15,12 +15,9 @@ from .forms import PlantForm, PlantCategoryForm, FaqForm, AdminUserForm, AdminLo
 client = OpenAI(api_key=getattr(settings, 'OPENAI_API_KEY', ''))
 
 
-# ─────────────────────────────────────────────
-#  1. Map คีย์เวิร์ดภาษาไทย -> Value จริงใน Database ('low', 'medium', 'high')
-#     ใช้ตรวจจับว่าผู้ใช้พิมพ์คำที่สื่อถึงระดับแสง/น้ำ/ความชื้นแบบไหนในข้อความแชท
-# ─────────────────────────────────────────────
+
+# Map คีย์เวิร์ดภาษาไทย -> ใช้ตรวจจับว่าผู้ใช้พิมพ์คำที่สื่อถึงระดับแสง/น้ำ/ความชื้นแบบไหนในข้อความแชท
 LIGHT_MAP = {
-    # ถ้าข้อความผู้ใช้มีคำใดคำหนึ่งในลิสต์นี้ ให้ตีความว่าหมายถึงระดับแสง 'low'
     'low': ["แสงน้อย", "ในร่ม", "ในบ้าน", "ห้องนอน", "โต๊ะทำงาน", "ไม่ชอบแดด", "ไม่โดนแดด", "แสงรำไรน้อย", "ร่มรื่น", "มุมมืด"],
     'medium': ["แสงปานกลาง", "รำไร", "แสงรำไร", "แดดเช้า", "แดดอ่อน", "โต๊ะริมหน้าต่าง", "แดดรำไร", "แดดไม่แรง"],
     'high': ["แสงมาก", "แสงแดดจ้า", "แดดจัด", "กลางแจ้ง", "แดดแรง", "แดดตลอดวัน", "ชอบแดด", "ทนแดด", "แดด 100", "ระเบียง"]
@@ -38,8 +35,7 @@ HUMIDITY_MAP = {
     'high': ["ความชื้นสูง", "ชอบชื้น", "ชื้นมาก", "ห้องน้ำ", "โรงเรือน", "ละอองน้ำ"]
 }
 
-# Map คำพ้อง/คำย่อของแต่ละหมวดหมู่พืช -> ใช้จับคู่กับคำในข้อความผู้ใช้
-# key คือชื่อหมวดหมู่แบบเต็ม (ต้องตรงกับ category_name ใน DB), value คือลิสต์คำที่ใช้แทนกันได้
+# Map คำพ้อง/คำย่อของแต่ละหมวดหมู่พืช
 CATEGORY_SYNONYMS = {
     "ไม้คลุมดิน": ["คลุมดิน"],
     "ไม้ล้มลุก": ["ล้มลุก"],
@@ -50,11 +46,8 @@ CATEGORY_SYNONYMS = {
 }
 
 
-# ─────────────────────────────────────────────
-#  1.1 PLANT_SYNONYMS — คำพ้อง/ชื่อเรียกอื่น/ชื่อย่อ/สะกดผิด/ชื่ออังกฤษของพืชแต่ละต้น
-#      key   = ชื่อพืชตรงตัวใน DB (plant_name)
-#      value = list คำที่ผู้ใช้อาจพิมพ์แทน (อย่างน้อย 1 ชื่อเป็นภาษาอังกฤษ/วิทยาศาสตร์)
-# ─────────────────────────────────────────────
+
+# PLANT_SYNONYMS — คำพ้อง/ชื่อเรียกอื่น/ชื่อย่อ/สะกดผิด
 PLANT_SYNONYMS = {
     "เล็บครุฑใบกุหลาบ": ["เล็บครุฑกุหลาบ", "อาราเลียใบกุหลาบ", "ming aralia", "aralia"],
     "เล็บครุฑใบเฟิร์น": ["เล็บครุฑเฟิร์น", "เล็บครุฑใบชวน", "fern leaf aralia", "fern aralia"],
@@ -154,8 +147,7 @@ _PLANT_ALIAS_LOOKUP.sort(key=lambda pair: len(pair[0]), reverse=True)
 
 def match_plant_names(user_input: str):
     """
-    ตรวจว่าข้อความผู้ใช้มีชื่อพืช/คำพ้อง/ชื่ออังกฤษของพืชตัวไหนบ้าง
-    คืนค่าเป็น set ของชื่อพืชจริง (canonical, ตรงกับ plant_name ใน DB)
+    ตรวจว่าข้อความผู้ใช้มีชื่อพืช/คำพ้อง
     """
     matched = set()
     for _lower, clean_text in build_search_variants(user_input):
@@ -163,41 +155,32 @@ def match_plant_names(user_input: str):
             if len(alias_clean) >= 2 and alias_clean in clean_text:
                 matched.add(canonical_name)
         if matched:
-            # เจอจาก variant นี้แล้ว ไม่ต้องลอง variant ถัดไป (variant แรกมาก่อนเสมอ)
             break
     return matched
 
 
-# ─────────────────────────────────────────────
-#  2. Custom Decorator สำหรับตรวจสอบการเข้าสู่ระบบผู้ดูแลระบบ
-#     ใช้ครอบ (decorate) view ที่ต้องการให้เข้าถึงได้เฉพาะ admin ที่ login แล้วเท่านั้น
-# ─────────────────────────────────────────────
+
+#  สำหรับตรวจสอบการเข้าสู่ระบบผู้ดูแลระบบ
 def admin_required(view_func):
     def wrapper(request, *args, **kwargs):
         # ตรวจสอบว่ามี key 'admin_id' อยู่ใน session หรือไม่ (ถูกตั้งค่าตอน login สำเร็จใน login_view)
         if 'admin_id' not in request.session:
-            # ถ้ายังไม่ login ให้ redirect ไปหน้า login ทันที แทนที่จะเรียก view จริง
+            # ถ้ายังไม่ login ให้ redirect ไปหน้า login ทันที
             return redirect('login')
         # ถ้า login แล้ว ให้เรียก view function ตัวจริงทำงานต่อตามปกติ
         return view_func(request, *args, **kwargs)
     return wrapper
 
 
-# ─────────────────────────────────────────────
-#  3. RAG — ค้นหาข้อมูลพืชจาก DB ตามคำถามผู้ใช้
-#     (RAG = Retrieval-Augmented Generation คือดึงข้อมูลจริงจาก DB มาป้อนให้ AI ใช้ตอบ
-#      แทนที่จะให้ AI ตอบจากความรู้ที่มันมีเอง เพื่อป้องกันการตอบมั่ว/หลอน (hallucination))
-#
-#      ปรับปรุงจากเดิม: เพิ่มขั้นตอน D0 ตรวจชื่อพืชเจาะจงก่อน (ผ่าน PLANT_SYNONYMS)
-# ─────────────────────────────────────────────
+# RAG — ค้นหาข้อมูลพืชจาก DB ตามคำถามผู้ใช้
 def get_plant_context(user_input):
     # ดึงพืชทั้งหมดพร้อม join ตาราง category ไว้ล่วงหน้า (select_related) เพื่อลดจำนวน query ตอน loop
     plants = Plant.objects.select_related('category').all()
 
-    # สร้างข้อความไว้เทียบ (ข้อความต้นฉบับ)
+    # สร้างข้อความไว้เทียบ ข้อความต้นฉบับ
     variants = build_search_variants(user_input)  # [(lower_text, clean_text)]
 
-    # ── D0: ตรวจหาชื่อพืชเจาะจงก่อนเป็นอันดับแรก (สำคัญสุด) ──
+    # ตรวจหาชื่อพืชเจาะจงก่อนเป็นอันดับแรก
     matched_plant_names = match_plant_names(user_input)
     if matched_plant_names:
         target_plants = plants.filter(plant_name__in=matched_plant_names).distinct()
@@ -217,7 +200,7 @@ def get_plant_context(user_input):
     attr_query = Q()  # ตัวเก็บเงื่อนไข query ที่จะค่อยๆ AND (&) เพิ่มเข้าไปตามคุณสมบัติที่ตรวจเจอ
     has_attr = False  # flag บอกว่ามีการตรวจเจอคุณสมบัติ (แสง/น้ำ/ความชื้น/หมวดหมู่) อย่างน้อย 1 อย่างหรือไม่
 
-    # ตัวแปรเก็บค่าที่ตรวจเจอ เพื่อเอาไปบันทึกลง SearchLog/SearchSummary ภายหลัง
+    
     selected_light = None
     selected_water = None
     selected_humidity = None
@@ -254,13 +237,12 @@ def get_plant_context(user_input):
             has_attr = True
             break
 
-    # D. ตรวจหาหมวดหมู่ — ต่างจาก A-C ตรงที่ต้องดึงหมวดหมู่จริงจาก DB มาเทียบ
-    #    (เพราะชื่อหมวดหมู่ผูกกับข้อมูลจริงในตาราง ไม่ได้ fix ค่าตายตัวเหมือน light/water/humidity)
+    # D. ตรวจหาหมวดหมู่
     matched_category_ids = set()  # เก็บ category_id ที่ตรงเงื่อนไข (อาจตรงได้มากกว่า 1 หมวด)
     db_categories = PlantCategory.objects.all()
     for cat in db_categories:
         if not cat.category_name:
-            continue  # ข้ามหมวดหมู่ที่ไม่มีชื่อ (กันข้อมูลผิดปกติ)
+            continue  # ข้ามหมวดหมู่ที่ไม่มีชื่อ
         # ลบช่องว่าง/ไม้ยมกออกจากชื่อหมวดหมู่ เพื่อเทียบกับ clean_text ได้ตรงกัน
         cat_name_clean = _clean(cat.category_name)
 
@@ -282,9 +264,8 @@ def get_plant_context(user_input):
         attr_query &= Q(category_id__in=list(matched_category_ids))
         has_attr = True
 
-    # E. บันทึก SearchLog และ Query ฐานข้อมูล
+    
     if has_attr:
-        # ถ้าตรวจเจอคุณสมบัติอย่างน้อย 1 อย่าง ให้บันทึกลง log/summary (และอาจ auto-gen FAQ)
         try:
             record_search(
                 filter_light=selected_light,
@@ -293,10 +274,8 @@ def get_plant_context(user_input):
                 filter_category=selected_category_obj
             )
         except Exception as e:
-            # ถ้าการบันทึก log ล้มเหลว ไม่ให้กระทบการค้นหาพืชหลัก แค่ print แจ้ง error ไว้
             print(f"Record search log error: {e}")
 
-        # กรองพืชด้วยเงื่อนไขทั้งหมดที่สะสมไว้ + distinct() กันข้อมูลซ้ำจากการ join
         target_plants = plants.filter(attr_query).distinct()
     else:
         # ถ้าไม่พบคุณสมบัติที่กำหนดไว้
@@ -322,12 +301,10 @@ def get_plant_context(user_input):
     return context
 
 
-# ─────────────────────────────────────────────
-#  4. Public Views
+
 #     views ที่ผู้ใช้ทั่วไป (ไม่ต้อง login) เข้าถึงได้
-# ─────────────────────────────────────────────
 def index(request):
-    # หน้าแรก: แสดงรายการพืชทั้งหมด พร้อมรองรับการค้นหา/filter ผ่าน query string (GET parameters)
+    # หน้าแรก: แสดงรายการพืชทั้งหมด
     plants = Plant.objects.all()
     categories = PlantCategory.objects.all()  # ใช้แสดงเป็นตัวเลือกใน dropdown filter หน้าเว็บ
 
@@ -353,7 +330,6 @@ def index(request):
     # บันทึก Search Log + สร้าง FAQ อัตโนมัติเมื่อมีการค้นหา
     # เงื่อนไข: ต้องมีการเลือก filter อย่างน้อย 1 ตัว (ไม่นับ search แบบพิมพ์ชื่อพืชอิสระ)
     if any([light, water, humidity, category_id]):
-        # ถ้ามี category_id ให้ดึง object จริงมาด้วย เพราะ record_search ต้องการ object ไม่ใช่ id string
         category_obj = PlantCategory.objects.filter(category_id=category_id).first() if category_id else None
         record_search(
             filter_light=light or None,
@@ -396,7 +372,7 @@ def chat(request):
 
 @csrf_exempt
 def chat_with_llm(request):
-    # endpoint รับข้อความจากผู้ใช้
+    # รับข้อความจากผู้ใช้
     # แล้วส่งให้ LLM พร้อมข้อมูลอ้างอิงจาก DB
 
     if request.method != 'POST':
@@ -406,9 +382,7 @@ def chat_with_llm(request):
 
     user_input = request.POST.get('message', '').strip()
 
-    # =====================================================
-    # 1. ทำ normalize ข้อความ
-    # =====================================================
+    # ทำ normalize ข้อความ
     # ใช้ข้อความต้นฉบับเป็นค่าเริ่มต้นก่อน
     normalized_input = user_input
 
@@ -418,14 +392,14 @@ def chat_with_llm(request):
         normalized_input = " ".join(sorted(matched_plant_names))
 
     try:
-        # =====================================================
-        # 2. ค้นหาข้อมูลพืชจากฐานข้อมูล
-        # =====================================================
+        
+        # ค้นหาข้อมูลพืชจากฐานข้อมูล
+        
         context_data = get_plant_context(user_input)
 
-        # =====================================================
-        # 3. ส่งข้อมูลให้ OpenAI
-        # =====================================================
+        
+        # ส่งข้อมูลให้ OpenAI
+        
         completion = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
@@ -486,10 +460,8 @@ def chat_with_llm(request):
         }, status=500)
 
 
-# ─────────────────────────────────────────────
-#  5. Authentication Views (Custom Session)
-#     ระบบ login/logout แบบกำหนดเอง (ไม่ได้ใช้ Django auth framework มาตรฐาน)
-# ─────────────────────────────────────────────
+
+# ระบบ login/logout แบบกำหนดเอง
 def login_view(request):
     error_message = None
     if request.method == 'POST':
@@ -499,7 +471,7 @@ def login_view(request):
             password = form.cleaned_data['password']
 
             # ตรวจสอบ username/password ตรงกับข้อมูลใน Admin model หรือไม่
-            # หมายเหตุ: เทียบ password แบบ plain text ตรงๆ (ไม่ได้ hash) ตามที่ออกแบบไว้ใน model
+
             admin_user = Admin.objects.filter(username=username, password=password).first()
             if admin_user:
                 # login สำเร็จ: เก็บ admin_id และ username ไว้ใน session เพื่อใช้ตรวจสอบสิทธิ์ภายหลัง
@@ -520,19 +492,16 @@ def logout_view(request):
     return redirect('/')  # กลับไปหน้าแรก
 
 
-# ─────────────────────────────────────────────
-#  6. Management Views (Admin Scope)
-#     views ทั้งหมดในหมวดนี้ต้อง login ก่อน (ครอบด้วย @admin_required)
-# ─────────────────────────────────────────────
+
+# Management Views (Admin Scope)
+# views ทั้งหมดในหมวดนี้ต้อง login ก่อน (ครอบด้วย @admin_required)
 @admin_required
 def management_view(request):
     # หน้าหลักของระบบจัดการหลัง login: มีแท็บ (tab) ย่อยสำหรับ plants/categories/faqs/admins
     tab = request.GET.get('tab', 'plants')  # ค่าเริ่มต้นถ้าไม่ระบุ tab คือ 'plants'
     plants = Plant.objects.select_related('category', 'admin').all()
     categories = PlantCategory.objects.select_related('admin').all()
-    # annotate จำนวนครั้งที่ถูกค้นหารวม (รวมจาก SearchSummary ทุกอันที่ผูกกับ FAQ นี้
-    # ปกติ FAQ หนึ่งอันจะถูกสร้างจาก summary เดียว แต่ใช้ Sum เผื่อกรณีมีมากกว่า 1 summary ผูกอยู่)
-    # เรียงจากจำนวนครั้งค้นหามากไปน้อย เพื่อให้ผู้ใช้ตัดสินใจลบง่ายขึ้น
+
     faqs = Faq.objects.annotate(
         total_search_count=Sum('search_summaries__search_count')
     ).order_by('-total_search_count')
